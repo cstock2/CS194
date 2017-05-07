@@ -1,0 +1,28 @@
+.nav-button{
+    text-align:center;
+    font-size:15px;
+    box-shadow: 0 0 3px #ccc;
+    float: left;
+    padding: 2px;
+    width: 12%;
+    margin: 3px;
+    display:inline-block;
+}
+
+.nav-button-right{
+    text-align:center;
+    font-size:15px;
+    box-shadow: 0 0 3px #ccc;
+    float: right;
+    padding: 2px;
+    width: 12%;
+    margin: 3px;
+    display:inline-block;
+}
+
+.nav-main{
+    width: 100%;
+    height: 10%;
+    margin:4px;
+    box-shadow: 0 0 3px #ccc;
+}

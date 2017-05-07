@@ -1,0 +1,30 @@
+{
+  "name": "ChatProject",
+  "version": "1.0.0",
+  "description": "A logging project",
+  "main": "webServer.js",
+  "license": "unlicensed",
+  "dependencies": {
+    "chai": "^3.5.0",
+    "express": "^4.13.3",
+    "express-session": "^1.14.0",
+    "mongoose": "^4.5.7",
+    "promise": "^7.1.1",
+    "request": ">1.0.0"
+  },
+  "devDependencies": {
+    "angular": "^1.4.9",
+    "angular-animate": "^1.4.9",
+    "angular-aria": "^1.4.9",
+    "angular-material": "^1.1.3",
+    "angular-resource": "^1.5.8",
+    "angular-route": "^1.6.0",
+    "async": "^2.0.1",
+    "body-parser": "^1.15.2",
+    "jshint": "^2.9.1-rc2",
+    "mocha": "^3.0.0",
+    "sinon": "^1.17.5",
+    "supertest": "^2.0.0",
+    "supertest-session": "^2.0.1"
+  }
+}

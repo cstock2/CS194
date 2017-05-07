@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="main-head">Conversation with {{cc.currBot.name}}</div>
+<div class="chat-body">
+    <div ng-repeat="x in cc.chatHistory">
+        <div ng-if="cc.isUser(x.to)" class="chat-user">
+            <div>{{x.text}}</div>
+        </div>
+        <div ng-if="cc.isNotUser(x.to)" class="chat-other">
+            <div>{{x.text}}</div>
+        </div>
+    </div>
+    <div><input type="text" ng-model="cc.myMessage"><label>Write Something!</label></div>
+    <div ng-click="cc.sendMessage()" class="main-link">Send</div>
+
+
+</div>
+</body>
+</html>

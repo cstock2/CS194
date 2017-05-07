@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="main-title">{{udc.user.firstName}} {{udc.user.lastName}}</div>
+    <div class="main-subhead">Location: {{udc.user.location}}</div>
+
+    <div class="main-subhead">Continue your conversation with these bots</div>
+    <div ng-repeat="x in udc.currBotList">
+        <div ng-click="goToConversation(x.id)" class="main-link">{{x.name}}</div>
+    </div>
+
+    <div class="main-subhead">Talk to these users</div>
+    <div ng-repeat="x in udc.userList">
+        <div ng-click="goToConversation(x.id)" class="main-link">{{x.fullName}}</div>
+    </div>
+</body>
+</html>

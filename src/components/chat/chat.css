@@ -1,0 +1,15 @@
+.chat-user{
+    text-align:right;
+    float:right;
+    width:90%
+}
+.chat-other{
+    text-align:left;
+    float:left;
+    width:90%
+}
+.chat-body{
+    width:85%;
+    margin-left:auto;
+    margin-right:auto;
+}

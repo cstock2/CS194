@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="main-head">Register a bot</div>
+    <div class="lrc-unit1"><input type="text" ng-model="brc.newBot.name" class="add-addUnit"><label class="lrc-label">Bot Name</label></div>
+    <div class="lrc-unit1"><input type="text" ng-model="brc.newBot.url" class="add-addUnit"><label class="lrc-label">Bot Url</label></div>
+    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.basicPerm" class="add-addUnit"><label class="lrc-label">Basic Permissions</label></div>
+    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.emailPerm" class="add-addUnit"><label class="lrc-label">Email Permissions</label></div>
+    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.birthdayPerm" class="add-addUnit"><label class="lrc-label">Birthday Permissions</label></div>
+    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.locationPerm" class="add-addUnit"><label class="lrc-label">Location Permissions</label></div>
+
+    <div class="main-error" ng-if="brc.badBotName">Bot name already exists</div>
+    <div class="main-error" ng-if="brc.badBotUrl">Bot url is invalid</div>
+    <div class="main-error" ng-if="brc.botDetailLack">Please fill in all fields</div>
+    <div class="main-error" ng-if="brc.botInternalError">Internal Server Error</div>
+    <div class="main-subhead" ng-if="brc.successBotRegister">Successfully registered bot. Log in to chat</div>
+    <div ng-click="registerBot()" class="main-link">Register</div>
+</body>
+</html>
