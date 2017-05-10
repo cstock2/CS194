@@ -18,6 +18,10 @@ chatApp.config(['$routeProvider',
                 templateUrl: 'src/components/bot-navigation/botNavTemplate.html',
                 controller: 'BotNavController'
             }).
+            when('/botExploration',{
+                templateUrl: 'src/components/bot-exploration/botExpTemplate.html',
+                controller: 'BotExplorationController'
+            }).
             when('/conversation/:id',{
                 templateUrl: 'src/components/chat/chatTemplate.html',
                 controller: 'ChatController'
@@ -41,6 +45,8 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location', funct
     $scope.main.loggedIn = false;
     $scope.main.userId = "";
     $scope.main.botRegistering = false;
+    $scope.main.days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    $scope.main.months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
     $scope.main.setLocation = function(arg){
         $scope.main.botRegistering = true;

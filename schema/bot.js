@@ -8,6 +8,7 @@ var BotSchema = new mongoose.Schema({
     id: String,
     name: String,
     url: String,
+    description: String,
     basicPerm: {type: Boolean, default: true},
     emailPerm: {type: Boolean, default: false},
     locationPerm: {type: Boolean, default: false},

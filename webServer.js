@@ -16,10 +16,15 @@ mongoose.connect('mongodb://localhost/CS194V2');
 var Users = require('./schema/user.js');
 var Bots = require('./schema/bot.js');
 var Messages = require('./schema/message.js');
+var GroupMessages = require('./schema/groupMessage.js');
+var GroupConversations = require('./schema/groupConversation.js');
 
 //Utility things that are necessary
 var bodyParser = require("body-parser"); //getting rid of this will make it so you can't parse HTTP communication
 app.use(bodyParser.json());
+var Promise = require('promise');
+var async = require('async');
+
 
 //Lets the app use the stuff in the directory
 app.use(express.static(__dirname));
@@ -40,7 +45,7 @@ var server = app.listen(3002, function () {
 //ADMIN FUNCTIONS, REGISTERING
 
 app.post('/admin/registerBot', function(request, response){
-    if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean'){
+    if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean'){
         response.status(404).send(JSON.stringify({
             statusCode: 404,
             message: "Arguments not provided"
@@ -109,6 +114,7 @@ app.post('/admin/registerBot', function(request, response){
                     id: "placeholder",
                     name: botName,
                     url: botUrl,
+                    description: request.body.description,
                     basicPerm: request.body.basicPerm,
                     emailPerm: request.body.emailPerm,
                     locationPerm: request.body.locationPerm,
@@ -452,6 +458,137 @@ app.post('/sendMessage', function(request, response){
 
 //GET REQUESTS
 
+app.get('/groupMessages', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return
+    }
+    GroupConversations.find({userMembers: request.session.user.id}, function(err,groups){
+        if(err){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Error querying groups"
+            }));
+            return
+        }
+        else if(groups === null){
+            response.send(JSON.stringify({
+                hasGroups: false,
+                message: "No groups"
+            }));
+            return
+        }
+        var currentGroups = [];
+        for(var idx = 0; idx < groups.length; idx++){
+            var currentGroup = groups[idx];
+            currentGroups.push({
+                id: currentGroup.id,
+                userMembers: currentGroup.userMembers,
+                botMember: currentGroup.botMember,
+                name: currentGroup.name
+            });
+        }
+        response.send(JSON.stringify({
+            hasGroups: true,
+            groups: currentGroups
+        }));
+    });
+});
+
+
+//Currently not functional
+app.get('/getFriendList', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    Users.findOne({_id: request.session.user.id}, function(err, user){
+        if(err){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Error finding user"
+            }));
+            return
+        }
+        else if(user === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Invalid user"
+            }));
+            return
+        }
+        var friends = user.friends;
+        var friendDetails = [];
+        var findOneError = false;
+        var nullFriend = false;
+        var calls = [];
+        console.log(friends);
+        //async.each(friends, function(friend, done_callback){
+        //
+        //});
+        for(var idx = 0; idx < friends.length; idx++) {
+            console.log(idx);
+            var func = (function(i){
+                console.log(i);
+                //console.log("Got here");
+                calls.push(function(callback){
+                    Users.findOne({_id: friends[i]}, function (err, friendUser) {
+                        console.log("inside the user findone");
+                        console.log(friends[i]);
+                        if (err) {
+                            console.log("Got an error here");
+                            response.status(404).send(JSON.stringify({
+                                statusCode: 404,
+                                message: "Error finding friend"
+                            }));
+                            console.log("about to return from error");
+                            callback(err);
+                            return
+                        }
+                        else if (friendUser === null) {
+                            console.log("could not find friend");
+                            response.status(404).send(JSON.stringify({
+                                statusCode: 404,
+                                message: "Friend does not exist"
+                            }));
+                            console.log("about to return from find error");
+                            callback(err);
+                            return
+                        }
+                        else {
+                            var friendObj = {};
+                            friendObj.firstName = friendUser.firstName;
+                            friendObj.lastName = friendUser.lastName;
+                            friendObj.id = friendUser.id;
+                            friendDetails.push(friendObj);
+                            callback(friendObj);
+                        }
+                    })(idx);
+                });
+            });
+            //calls.push(function (callback) {
+
+            //});
+        }
+        console.log(calls);
+        async.parallel(calls, function(err,result){
+            console.log("In the async.parallel");
+            console.log(err);
+            //console.log(result);
+            var returnObj = {};
+            returnObj.friendList = friendDetails;
+            //response.send(returnObj);
+            response.send(JSON.stringify(returnObj));
+        });
+    });
+});
+
 app.get('/currentBotList', function(request,response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
@@ -581,7 +718,6 @@ app.get('/userList', function(request,response){
         }
         var returnObj = {};
         returnObj.users = [];
-        console.log("Number of users: ", users.length);
         for(var idx in users){
             var currUser = users[idx];
             if(currUser.id !== request.session.user.id){
@@ -703,6 +839,7 @@ app.get('/botList', function(request, response){
                     var botObj = {};
                     botObj.name = currBot.name;
                     botObj.id = currBot.id;
+                    botObj.description = currBot.description;
                     newBots.push(botObj);
                 }
                 newBots.sort(function(a, b){
@@ -747,6 +884,7 @@ app.get('/getBot/:botId', function(request, response){
         returnObj.bot = {};
         returnObj.bot.id = bot.id;
         returnObj.bot.name = bot.name;
+        returnObj.bot.description = bot.description;
         returnObj.bot.basicPerm = bot.basicPerm;
         returnObj.bot.emailPerm = bot.emailPerm;
         returnObj.bot.locationPerm = bot.locationPerm;

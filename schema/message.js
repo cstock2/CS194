@@ -6,8 +6,8 @@ var mongoose = require('mongoose');
 
 var MessageSchema = new mongoose.Schema({
     id: String,
-    to: String,
-    from: String,
+    to: mongoose.Schema.Types.ObjectId,
+    from: mongoose.Schema.Types.ObjectId,
     dateTime: {type: Date, default: Date.now},
     text: String
 });

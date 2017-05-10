@@ -12,6 +12,7 @@ chatApp.controller('BotRegisterController', ['$scope', '$location', '$resource',
     $scope.brc.newBot.locationPerm = false;
     $scope.brc.newBot.birthdayPerm = false;
     $scope.brc.newBot.allPerm = false;
+    $scope.brc.newBot.description = "";
 
     $scope.brc.badBotName = false;
     $scope.brc.badBotUrl = false;
@@ -37,7 +38,7 @@ chatApp.controller('BotRegisterController', ['$scope', '$location', '$resource',
     };
 
     $scope.registerBot = function(){
-        if($scope.brc.newBot.name === "" || $scope.brc.newBot.url === ""){
+        if($scope.brc.newBot.name === "" || $scope.brc.newBot.url === "" || $scope.brc.newBot.description === ""){
             $scope.brc.botDetailLack = true;
             return
         }

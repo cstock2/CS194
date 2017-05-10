@@ -16,12 +16,17 @@ chatApp.controller('UserDetailController', ['$scope', '$resource','$routeParams'
         });
         var userList = $resource('/userList');
         var userData = userList.get(function(){
-            console.log(userData);
             $scope.udc.userList = userData.users;
         });
         var currentBotList = $resource('/currentBotList');
         var currBotData = currentBotList.get(function(){
             $scope.udc.currBotList = currBotData.bots;
+        });
+        var currentGroupList = $resource('/groupMessages');
+        var groupData = currentGroupList.get(function(){
+            console.log("groupData: ", groupData);
+            $scope.udc.hasGroups = groupData.hasGroups;
+            $scope.udc.groups = groupData.groups;
         });
     };
 

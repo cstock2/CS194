@@ -5,18 +5,41 @@
     <title>Title</title>
 </head>
 <body>
-<div class="main-head">Conversation with {{cc.currBot.name}}</div>
+<div ng-if="cc.isBot">
+    <div class="main-head">Conversation with {{cc.currBot.name}}</div>
+</div>
+<div ng-if="cc.isNotBot">
+    <div class="main-head">Conversation with {{cc.currUser.fullName}}</div>
+</div>
 <div class="chat-body">
-    <div ng-repeat="x in cc.chatHistory">
-        <div ng-if="cc.isUser(x.to)" class="chat-user">
-            <div>{{x.text}}</div>
+    <div ng-if="cc.isBot">
+        <div ng-repeat="x in cc.chatHistory">
+            <div ng-if="cc.isUser(x.to)" class="chat-user">
+                <div>{{x.text}}</div>
+                <div>{{x.dateTime}}</div>
+            </div>
+            <div ng-if="cc.isNotUser(x.to)" class="chat-other">
+                <div>{{x.text}}</div>
+                <div>{{x.dateTime}}</div>
+            </div>
         </div>
-        <div ng-if="cc.isNotUser(x.to)" class="chat-other">
-            <div>{{x.text}}</div>
-        </div>
+        <div><input type="text" ng-model="cc.myMessage"><label>Write Something!</label></div>
+        <div ng-click="cc.sendMessage()" class="main-link">Send</div>
     </div>
-    <div><input type="text" ng-model="cc.myMessage"><label>Write Something!</label></div>
-    <div ng-click="cc.sendMessage()" class="main-link">Send</div>
+    <div ng-if="cc.isNotBot">
+        <div ng-repeat="x in cc.chatHistory">
+            <div ng-if="cc.isUser(x.to)" class="chat-user">
+                <div>{{x.text}}</div>
+                <div>{{x.dateTime}}</div>
+            </div>
+            <div ng-if="cc.isNotUser(x.to)" class="chat-other">
+                <div> {{x.text}} </div>
+                <div>{{x.dateTime}}</div>
+            </div>
+        </div>
+        <div><input type="text" ng-model="cc.myMessage"><label>Write Something!</label></div>
+        <div ng-click="cc.sendUserMessage(cc.currUser.id)" class="main-link">Send</div>
+    </div>
 
 
 </div>

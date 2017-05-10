@@ -8,18 +8,22 @@ var expect = require('chai').expect;
 var request = require('supertest');
 var session = require('supertest-session');
 var app = require('../webServer');
-var Users = require('../schema/user.js');
-var Bots = require('../schema/bot.js');
-var Messages = require('../schema/message.js');
 var sinon = require('sinon');
 var server = request.agent(app);
 var requestObj = require('request');
+
+//Database Objects
+var Users = require('../schema/user.js');
+var Bots = require('../schema/bot.js');
+var Messages = require('../schema/message.js');
+var GroupMessages = require('../schema/groupMessage.js');
+var GroupConversations = require('../schema/groupConversation.js');
 
 describe("Test Server APIs", function(){
     describe("authentication and registration", function(){
         describe('/admin/registerBot', function(){
             describe('failing cases', function(){
-                var badBot = {name: "badBot", url: "bad_bot.com", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: false};
+                var badBot = {name: "badBot", url: "bad_bot.com", description: "This is a bad bot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: false};
                 describe('proper arguments not provided', function(){
                     it('404 with no body', function(done){
                         request(app).post('/admin/registerbot').send().expect(404).end(function(err,res){
@@ -47,7 +51,7 @@ describe("Test Server APIs", function(){
                     });
                 });
                 describe('arguments do not match each other', function(){
-                    var badBot2 = {name: "badBot", url: "bad_bot.com", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: true};
+                    var badBot2 = {name: "badBot", url: "bad_bot.com", description: "badBot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: true};
                     it('404 with booleans not in agreement', function(done){
                         request(app).post('/admin/registerbot').send(badBot2).expect(404).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid arguments"}');
@@ -183,6 +187,7 @@ describe("Test Server APIs", function(){
                 var goodBot = {
                     url: 'goodUrl',
                     name: 'notTaken',
+                    description: "This is a good bot",
                     basicPerm: true,
                     emailPerm: true,
                     birthdayPerm: true,
@@ -809,6 +814,7 @@ describe("Test Server APIs", function(){
                         before(function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(requestObj, 'post').yields({error: "error"}, null, null);
+                            sandbox.stub(Messages, 'create').yields(null, {bot: "good", save: function fun(){}});
                         });
                         after(function(){
                             sandbox.restore();
@@ -887,6 +893,261 @@ describe("Test Server APIs", function(){
             });
         });
         describe('get requests', function(){
+            describe('groupMessages', function(){
+                describe('failing cases', function(){
+                    describe('unauthorized access', function(){
+                        it('returns 401 error', function(done){
+                            request(app).get('/groupMessages').expect(401).end(function(err,res){
+                                assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding group conversations', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'find').yields({error: "error"}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error', function(done){
+                            server.get('/groupMessages').expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error querying groups"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('passing cases', function(){
+                        describe('no groups', function(){
+                            var sandbox;
+                            before(function(){
+                                sandbox = sinon.sandbox.create();
+                                sandbox.stub(GroupConversations, 'find').yields(null, null);
+                            });
+                            after(function(){
+                                sandbox.restore();
+                            });
+                            it('returns boolean and message', function(done){
+                                server.get('/groupMessages').expect(200).end(function(err,res){
+                                    var obj = JSON.parse(res.text);
+                                    assert.strictEqual(obj.hasGroups, false);
+                                    assert.strictEqual(obj.message, "No groups");
+                                    done();
+                                });
+                            });
+                        });
+                        describe('valid groups', function(done){
+                            var sandbox;
+                            var data = [];
+                            data.push({id: "a", userMembers: ["1","2"], botMember: "3", name: "test"});
+                            before(function(){
+                                sandbox = sinon.sandbox.create();
+                                sandbox.stub(GroupConversations, 'find').yields(null, data)
+                            });
+                            it('returns boolean and groups', function(done){
+                                server.get('/groupMessages').expect(200).end(function(err,res){
+                                    var obj = JSON.parse(res.text);
+                                    assert.strictEqual(obj.hasGroups, true);
+                                    assert.strictEqual(obj.groups.length, 1);
+                                    done();
+                                });
+                            });
+                            it('individual groups have proper fields', function(done){
+                                server.get('/groupMessages').expect(200).end(function(err,res){
+                                    var obj = JSON.parse(res.text);
+                                    assert.strictEqual(obj.groups[0].id, "a");
+                                    assert.strictEqual(obj.groups[0].userMembers[0], '1');
+                                    assert.strictEqual(obj.groups[0].botMember, "3");
+                                    assert.strictEqual(obj.groups[0].name, "test");
+                                    done();
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+            //describe('getFriendList', function(){
+            //    describe('failing cases', function(){
+            //        describe('unauthorized access', function(){
+            //            it('returns 401 error', function(done){
+            //                request(app).get('/getFriendList').expect(401).end(function(err,res){
+            //                    assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('error finding current user', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                sandbox.stub(Users, 'findOne').yields({error:"error"}, null);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding user"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('current user invalid', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                sandbox.stub(Users, 'findOne').yields(null, null);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid user"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        var friendA = {id: "a", firstName: "alpha", lastName:"beta"};
+            //        var friendB = {id: "b", firstName: "Rubeus", lastName: "Hagrid"};
+            //        var friendC = {id: "c", firstName: "Harry", lastName: "Potter"};
+            //        var error = {error: "error"};
+            //        var u1 = {friends: ["a","b","c"]};
+            //        describe('error finding first friend', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                var stub = sandbox.stub(Users, 'findOne');
+            //                stub.withArgs({_id: "u1"}).yields(null, u1);
+            //                stub.withArgs({_id: "a"}).yields(error, null);
+            //                stub.withArgs({_id: "b"}).yields(null, friendB);
+            //                stub.withArgs({_id: "c"}).yields(null, friendC);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding friend"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('first friend invalid', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                var stub = sandbox.stub(Users, 'findOne');
+            //                stub.withArgs({_id: "u1"}).yields(null, u1);
+            //                stub.withArgs({_id: "a"}).yields(null, null);
+            //                stub.withArgs({_id: "b"}).yields(null, friendB);
+            //                stub.withArgs({_id: "c"}).yields(null, friendC);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Friend does not exist"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('error finding middle friend', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                var stub = sandbox.stub(Users, 'findOne');
+            //                stub.withArgs({_id: "u1"}).yields(null, u1);
+            //                stub.withArgs({_id: "a"}).yields(null, friendA);
+            //                stub.withArgs({_id: "b"}).yields(error, null);
+            //                stub.withArgs({_id: "c"}).yields(null, friendC);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding friend"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('middle friend invalid', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                var stub = sandbox.stub(Users, 'findOne');
+            //                stub.withArgs({_id: "u1"}).yields(null, u1);
+            //                stub.withArgs({_id: "a"}).yields(null, friendA);
+            //                stub.withArgs({_id: "b"}).yields(null, null);
+            //                stub.withArgs({_id: "c"}).yields(null, friendC);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Friend does not exist"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('error finding last friend', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                var stub = sandbox.stub(Users, 'findOne');
+            //                stub.withArgs({_id: "u1"}).yields(null, u1);
+            //                stub.withArgs({_id: "a"}).yields(null, friendA);
+            //                stub.withArgs({_id: "b"}).yields(null, friendB);
+            //                stub.withArgs({_id: "c"}).yields(error, null);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding friend"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //        describe('last friend invalid', function(){
+            //            var sandbox;
+            //            before(function(){
+            //                thisSandbox.restore();
+            //                sandbox = sinon.sandbox.create();
+            //                var stub = sandbox.stub(Users, 'findOne');
+            //                stub.withArgs({_id: "u1"}).yields(null, u1);
+            //                stub.withArgs({_id: "a"}).yields(null, null);
+            //                stub.withArgs({_id: "b"}).yields(null, friendB);
+            //                stub.withArgs({_id: "c"}).yields(null, null);
+            //            });
+            //            after(function(){
+            //                sandbox.restore();
+            //            });
+            //            it('returns 404 error', function(done){
+            //                server.get('/getFriendList').expect(404).end(function(err,res){
+            //                    assert.strictEqual(res.text, '{"statusCode":404,"message":"Friend does not exist"}');
+            //                    done();
+            //                });
+            //            });
+            //        });
+            //    });
+            //    //describe('passing case', function(){
+            //    //
+            //    //});
+            //});
             describe('currentBotList', function(){
                 describe('failing cases', function(){
                     describe('unauthorized access', function(){
@@ -1421,10 +1682,10 @@ describe("Test Server APIs", function(){
                 describe('passing cases', function(){
                     var sandbox;
                     var data = [];
-                    data.push({id: 1, name: "alpha"});
-                    data.push({id: 2, name: "beta"});
-                    data.push({id: 3, name: "gamma"});
-                    data.push({id: 4, name: "delta"});
+                    data.push({id: 1, name: "alpha", description:"a"});
+                    data.push({id: 2, name: "beta", description:"b"});
+                    data.push({id: 3, name: "gamma",description:"c"});
+                    data.push({id: 4, name: "delta",description:"d"});
                     before(function(){
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'find').yields(null, data);
@@ -1496,7 +1757,7 @@ describe("Test Server APIs", function(){
                     var sandbox;
                     before(function(){
                         sandbox = sinon.sandbox.create();
-                        sandbox.stub(Bots, 'findOne').yields(null, {id: "a", name: "alpha", url: "noPrint", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false});
+                        sandbox.stub(Bots, 'findOne').yields(null, {id: "a", name: "alpha", url: "noPrint", description: "goodBot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false});
                     });
                     after(function(){
                         sandbox.restore();
@@ -1506,6 +1767,7 @@ describe("Test Server APIs", function(){
                             var obj = JSON.parse(res.text);
                             assert.strictEqual(obj.bot.id, "a");
                             assert.strictEqual(obj.bot.name, "alpha");
+                            assert.strictEqual(obj.bot.description, "goodBot");
                             assert.strictEqual(obj.bot.basicPerm, true);
                             assert.strictEqual(obj.bot.emailPerm, false);
                             assert.strictEqual(obj.bot.locationPerm, false);
@@ -1516,7 +1778,7 @@ describe("Test Server APIs", function(){
                     it('does not return url', function(done){
                         server.get('/getBot/good').expect(200).end(function(err,res){
                             var obj = JSON.parse(res.text);
-                            assert.strictEqual(Object.keys(obj.bot).length, 6);
+                            assert.strictEqual(Object.keys(obj.bot).length, 7);
                             assert.strictEqual(typeof obj.bot.url, 'undefined');
                             done();
                         });

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="main-title">Explore some bots!</div>
+<div class="main-subhead">Continue with your current bots</div>
+<div ng-repeat="x in bec.currBots">
+    <div class="main-link" ng-click="main.setLocation('/conversation/'+x.id)">{{x.name}}</div>
+</div>
+<div class="main-subhead">Or explore new bots</div>
+<div ng-repeat="x in bec.allBots">
+    <div class="main-link" ng-click="main.setLocation('/botStart/' + x.id)">{{x.name}}</div>
+    <div>{{x.description}}</div>
+</div>
+</body>
+</html>

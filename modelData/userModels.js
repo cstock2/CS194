@@ -13,7 +13,8 @@ function getData(){
         password: "weak",
         gender: "male",
         birthday: new Date("11-05-1995 00:00 PDT"),
-        email: "codywstocker@hotmail.com"
+        email: "codywstocker@hotmail.com",
+        friends: ["1"]
     });
     users.push({
         id: "2",
@@ -22,27 +23,30 @@ function getData(){
         gender: "male",
         location: "Stanford, CA",
         password: "strong",
-        email: "John"
+        email: "John",
+        friends: ["1"]
     });
     users.push({
         id: "4",
-        firstName: "James",
-        lastName: "Madison",
+        firstName: "Eric",
+        lastName: "Musyoke",
         gender: "male",
         location: "Washington, DC",
-        password: "weak",
+        password: "strong",
         birthday: new Date("06-04-1976 00:00 PDT"),
-        email: "jamesmadison@usa.gov"
+        email: "eric",
+        friends: ["1"]
     });
     users.push({
         id: "5",
-        firstName: "George",
-        lastName: "Washington",
-        location: "Richmond, VA",
+        firstName: "Daniel",
+        lastName: "Schiferaw",
+        location: "Stanford, CA",
         gender: "male",
         password: "weak",
         birthday: new Date("02-22-1723 10:00 PDT"),
-        email: "georgewashington@usa.gov"
+        email: "dan",
+        pendingFriendRequests: ["1"]
     });
     users.push({
         id: "1",
@@ -52,7 +56,10 @@ function getData(){
         location: "Stanford",
         password: "weak",
         email: "cody",
-        currentBots: ["10"]
+        currentBots: ["10"],
+        friends: ["2","6","4"],
+        friendRequests: ["5"],
+        pendingFriendRequests: ["7"]
     });
     users.push({
         id: "7",
@@ -61,7 +68,8 @@ function getData(){
         gender: "male",
         location: "Stanford, CA",
         password: "password",
-        email: "Jesus"
+        email: "Jesus",
+        friendRequests: ["1"]
     });
 
     var bots = [];
@@ -69,11 +77,34 @@ function getData(){
         id: "10",
         name: "echo",
         url: 'http://localhost:5555',
+        description: "a simple echo server",
         basicPerm: true,
         emailPerm: true,
         locationPerm: true,
         birthdayPerm: true,
         allPerm: true
+    });
+    bots.push({
+        id: "11",
+        name: "dummy",
+        url: 'http://localhost:5678', //PLEASE CHANGE THIS IF YOU USE THIS PORT
+        description: "a simple dummy bot, does not do anything",
+        basicPerm: true,
+        emailPerm: false,
+        locationPerm: false,
+        birthdayPerm: false,
+        allPerm: false
+    });
+    bots.push({
+        id: "12",
+        name: "dummy2",
+        url: 'http://localhost:6789',
+        description: "another simple dummy bot",
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: false,
+        birthdayPerm: false,
+        allPerm: false
     });
 
     var messages = [];
@@ -141,6 +172,64 @@ function getData(){
         text: "Pretty good"
     });
 
+    var groups = [];
+    groups.push({
+        id: "20",
+        userMembers: ["1", "2"],
+        botMember: "10",
+        name: "Echo time!"
+    });
+    groups.push({
+        id: "21",
+        userMembers: ["1","2","4","5","6","7"],
+        botMember: "10",
+        name: "Echo chamber!"
+    });
+
+    var multiMessages = [];
+    multiMessages.push({
+        id: "30",
+        convoId: "20",
+        from: "1",
+        text: "Hello",
+        dateTime: new Date("2017-05-01 1:00 PDT")
+    });
+    multiMessages.push({
+        id: "31",
+        convoId: "20",
+        from: "10",
+        text: "Hello",
+        dateTime: new Date("2017-05-01 1:00:01 PDT")
+    });
+    multiMessages.push({
+        id: "32",
+        convoId: "20",
+        from: "2",
+        text: "Wow, speedy response",
+        dateTime: new Date("2017-05-01 1:05 PDT")
+    });
+    multiMessages.push({
+        id: "33",
+        convoId: "20",
+        from: "10",
+        text: "Wow, speedy response",
+        dateTime: new Date("2017-05-01 1:05:01 PDT")
+    });
+    multiMessages.push({
+        id: "35",
+        convoId: "21",
+        from: "5",
+        text: "Welcome to the echo chamber",
+        dateTime: new Date("2017-04-01 3:00 PDT")
+    });
+    multiMessages.push({
+        id: "36",
+        convoId: "21",
+        from: "10",
+        text: "Welcome to the echo chamber",
+        dateTime: new Date("2017-04-01 3:01 PDT")
+    });
+
 
     var userModel = function(){
         return users;
@@ -154,10 +243,20 @@ function getData(){
         return messages;
     };
 
+    var groupModel = function(){
+        return groups;
+    };
+
+    var multiModel = function(){
+        return multiMessages;
+    };
+
     var logModels = {
         userModel: userModel,
         botModel: botModel,
-        messageModel: messageModel
+        messageModel: messageModel,
+        groupModel: groupModel,
+        multiModel: multiModel
     };
 
     return logModels;

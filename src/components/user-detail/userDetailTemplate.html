@@ -17,5 +17,10 @@
     <div ng-repeat="x in udc.userList">
         <div ng-click="goToConversation(x.id)" class="main-link">{{x.fullName}}</div>
     </div>
+    <div ng-if="udc.hasGroups" class="main-subhead">Or continue these group conversations</div>
+    <div ng-repeat="x in udc.groups">
+        <div>{{x.name}} with {{x.botMember}} and {{x.userMembers[0]}}</div>
+    </div>
+    <div ng-if="!udc.hasGroups" class="main-subhead">You have no current group messages</div>
 </body>
 </html>

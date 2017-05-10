@@ -19,7 +19,10 @@ var UserSchema = new mongoose.Schema({
     birthdayAuthBots: {type: Array, default: []}, //any bot that a user has given birthday authorization to
     locationAuthBots: {type: Array, default: []},
     allAuthBots: {type: Array, default: []},
-    currentBots: {type: Array, default: []}
+    currentBots: {type: Array, default: []},
+    friends: {type: Array, default: []},
+    friendRequests: {type: Array, default: []},
+    pendingFriendRequests: {type: Array, default: []}
 });
 
 var Users = mongoose.model('Users', UserSchema);
