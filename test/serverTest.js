@@ -922,6 +922,242 @@ describe("Test Server APIs", function(){
                     });
                 });
             });
+            describe('sendGroupMessage', function(){
+                var message = {text: "hello", convoId: "a"};
+                describe('failing cases', function(){
+                    describe('unauthorized access', function(){
+                        it('returns 401 error', function(done){
+                            request(app).post('/sendGroupMessage').send({}).expect(401).end(function(err,res){
+                                assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid arguments', function(){
+                        it('returns 400 error for no message text', function(done){
+                            server.post('/sendGroupMessage').send({convoId: "a"}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                        it('returns 400 error for no convoId', function(done){
+                            server.post('/sendGroupMessage').send({text: "hello"}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding conversation', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields({error: "error"}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding conversation"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid conversation', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid conversation"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding bot', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid bot', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error creating user message', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            sandbox.stub(GroupMessages, 'create').yields({error: "error"}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error creating message"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('connection timed out', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            sandbox.stub(GroupMessages, 'create').yields(null, {_id:"c", save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields( {code: 'ETIMEDOUT', connect: true});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Could not send message to bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('other post error', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            sandbox.stub(GroupMessages, 'create').yields(null, {_id:"c", save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields({error:"error"},null,null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error',function(done){
+                            server.post('/sendGroupMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error posting to bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid bot response', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            sandbox.stub(GroupMessages, 'create').yields(null, {_id:"c", save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null,null,{});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error',function(done){
+                            server.post('/sendGroupMessage').send(message).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid bot response"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error saving bot response', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            var stub = sandbox.stub(GroupMessages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
+                            stub.withArgs({to:"a",from:"b",text:"goodbye"}).yields({error:"error"}, null);
+                            sandbox.stub(requestObj, 'post').yields(null,null,{text: "goodbye"});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error saving bot response"}');
+                                done();
+                            });
+                        });
+                    });
+                });
+                describe('passing cases', function(){
+                    describe('bot does not send response', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            var stub = sandbox.stub(GroupMessages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields({code: 'ETIMEDOUT'},null,null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns two booleans', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(200).end(function(err,res){
+                                var obj=JSON.parse(res.text);
+                                assert.strictEqual(obj.sentMessage, true);
+                                assert.strictEqual(obj.receivedResponse, false);
+                                done();
+                            });
+                        });
+                    });
+                    describe('bot returns message', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
+                            var stub = sandbox.stub(GroupMessages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
+                            stub.withArgs({to:"a",from:"b",text:"goodbye"}).yields(null, {_id:"d",save:function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null,null,{text: "goodbye"});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns two booleans', function(done){
+                            server.post('/sendGroupMessage').send(message).expect(200).end(function(err,res){
+                                var obj=JSON.parse(res.text);
+                                assert.strictEqual(obj.sentMessage, true);
+                                assert.strictEqual(obj.receivedResponse, true);
+                                done();
+                            });
+                        });
+                    });
+                });
+            });
         });
         describe('get requests', function(){
             describe('groupMessages', function(){

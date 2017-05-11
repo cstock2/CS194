@@ -416,6 +416,8 @@ app.post('/updatePermissions', function(request, response){
     });
 });
 
+
+//THIS FUNCTION NEEDS TO BE REVAMPED, MARKED 5/10/17
 app.post('/sendMessage', function(request, response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
@@ -446,7 +448,8 @@ app.post('/sendMessage', function(request, response){
                 var options = {
                     body:postData,
                     json: true,
-                    url: url
+                    url: url,
+                    timeout: 1500
                 };
                 requestObj.post(options, function(error, sResponse, body){
                     if(error){
@@ -487,11 +490,128 @@ app.post('/sendMessage', function(request, response){
     }
 });
 
-//app.post('/sendGroupMessages', function(request,response){
-//    if(typeof request.session.user === 'undefined'){
-//
-//    }
-//});
+app.post('/sendGroupMessage', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return
+    }
+    if(typeof request.body.text !== 'string' || typeof request.body.convoId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return
+    }
+    GroupConversations.findOne({id: request.body.convoId}, function(err,convo){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding conversation"
+            }));
+            return
+        }
+        else if(convo === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Invalid conversation"
+            }));
+            return
+        }
+        Bots.findOne({id: convo.botMember}, function(err,bot){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding bot"
+                }));
+                return
+            }
+            else if(bot === null){
+                response.status(404).send(JSON.stringify({
+                    statusCode:404,
+                    message:"Invalid bot"
+                }));
+                return
+            }
+            GroupMessages.create({
+                to: request.body.convoId,
+                from: request.session.user.id,
+                text: request.body.text,
+            }, function(err,messObj){
+                if(err){
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
+                        message:"Error creating message"
+                    }));
+                    return
+                }
+                messObj.id = messObj._id;
+                messObj.save();
+                var postData = {text: request.body.text, userId: request.session.user.id, botId: bot.id};
+                var options = {
+                    body:postData,
+                    json: true,
+                    url: bot.url,
+                    timeout: 1500
+                };
+                requestObj.post(options, function(error, sResponse, body){
+                    if(error){
+                        if(error.code === 'ETIMEDOUT'){
+                            if(error.connect === true){
+                                response.status(404).send(JSON.stringify({
+                                    statusCode:404,
+                                    message:"Could not send message to bot"
+                                }));
+                                return
+                            }
+                            response.status(200).send(JSON.stringify({
+                                sentMessage: true,
+                                receivedResponse: false
+                            }));
+                            return
+                        }
+                        else{
+                            response.status(500).send(JSON.stringify({
+                                statusCode:500,
+                                message:"Error posting to bot"
+                            }));
+                            return
+                        }
+                    }
+                    if(typeof body.text !== 'string' || body.text.length < 1){
+                        response.status(400).send(JSON.stringify({
+                            statusCode:400,
+                            message:"Invalid bot response"
+                        }));
+                        return
+                    }
+                    GroupMessages.create({
+                        to: request.body.convoId,
+                        from: convo.botMember,
+                        text: body.text,
+                    },function(err, newMessage){
+                        if(err){
+                            response.status(500).send(JSON.stringify({
+                                statusCode:500,
+                                message:"Error saving bot response"
+                            }));
+                            return
+                        }
+                        newMessage.id = newMessage._id;
+                        newMessage.save();
+                        response.send(JSON.stringify({
+                            sentMessage: true,
+                            receivedResponse: true
+                        }));
+                    });
+                });
+            });
+        });
+
+    });
+});
 
 
 //GET REQUESTS
