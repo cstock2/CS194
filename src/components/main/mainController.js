@@ -34,12 +34,16 @@ chatApp.config(['$routeProvider',
                 templateUrl: 'src/components/bot-start/botStartTemplate.html',
                 controller: 'BotStartController'
             }).
+            when('/groupConversation/:convoId',{
+                templateUrl: 'src/components/group-chat/groupChatTemplate.html',
+                controller: 'GroupChatController'
+            }).
             otherwise({
                 redirectTo: '/login'
             });
     }]);
 
-chatApp.controller('MainController', ['$scope', '$rootScope', '$location', function($scope, $rootScope, $location){
+chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$resource', function($scope, $rootScope, $location, $resource){
     $scope.main = {};
     $scope.main.title = "Chat App";
     $scope.main.loggedIn = false;
@@ -47,6 +51,18 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location', funct
     $scope.main.botRegistering = false;
     $scope.main.days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     $scope.main.months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    $scope.main.beginPage = function(){
+        var sessionResource = $resource('/admin/getSession');
+        var sessionData = sessionResource.get(function(){
+            if(sessionData.isSession){
+                $scope.main.userId = sessionData.id;
+            }
+            else{
+                $scope.main.loggedIn = false;
+            }
+        });
+    };
 
     $scope.main.setLocation = function(arg){
         $scope.main.botRegistering = true;
@@ -56,14 +72,27 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location', funct
     //This method ensures that if you are no longer logged in, you do not get to access other people's information
     //However, as of now, refreshing the page effectively logs you out, so we will need a better way to do this
     $rootScope.$on("$routeChangeStart", function(event, next) {
-        if($scope.main.botRegistering){
-            return
-        }
-        if (!$scope.main.loggedIn) {
-            if (next.templateUrl !== "components/login-register/loginRegisterTemplate.html") {
-                $location.path("/login");
+        var sessionResource = $resource('/admin/getSession');
+        var sessionData = sessionResource.get(function(){
+            if(sessionData.isSession){
+                $scope.main.userId = sessionData.id;
+                $scope.main.loggedIn = true;
+                $scope.main.userName = sessionData.firstName + ' ' + sessionData.lastName;
             }
-        }
+            else{
+                $scope.main.loggedIn = false;
+            }
+            if($scope.main.botRegistering){
+                return
+            }
+            if (!$scope.main.loggedIn) {
+                if (next.templateUrl !== "components/login-register/loginRegisterTemplate.html") {
+                    $location.path("/login");
+                }
+            }
+        });
+
     });
+    //$scope.main.beginPage();
 }]);
 

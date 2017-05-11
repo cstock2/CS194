@@ -9,6 +9,10 @@ chatApp.controller('UserDetailController', ['$scope', '$resource','$routeParams'
         $location.path('/conversation/'+id);
     };
 
+    $scope.goToGroupConversation = function(id){
+        $location.path('/groupConversation/'+id);
+    };
+
     $scope.makePage = function(){
         var resource = $resource('/userDetail/:userId', {userId:'@userId'});
         var data = resource.get({userId:$routeParams.userId}, function(){
@@ -24,7 +28,6 @@ chatApp.controller('UserDetailController', ['$scope', '$resource','$routeParams'
         });
         var currentGroupList = $resource('/groupMessages');
         var groupData = currentGroupList.get(function(){
-            console.log("groupData: ", groupData);
             $scope.udc.hasGroups = groupData.hasGroups;
             $scope.udc.groups = groupData.groups;
         });

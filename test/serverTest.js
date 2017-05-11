@@ -358,6 +358,7 @@ describe("Test Server APIs", function(){
             });
             describe('passing cases', function(){
                 describe('returns correct data', function(){
+                    //keep in mind that this will keep adding people to the database, so you want to do a clear of the system before running the program
                     var data = {firstName: "Cody", lastName: "Stocker", location: "Chicago", password1: "red", password2: "red", gender:"male",emailAddress: "codywstocker", birthday: new Date("01-01-2001 00:00 PDT")};
                     it('returns correct username', function(done){
                         request(app).post('/admin/register').send(data).expect(200).end(function(err,res){
@@ -396,6 +397,36 @@ describe("Test Server APIs", function(){
                 cookie = res.headers['set-cookie'];
                 server.get('/getBot/id').expect(200).end(function(err,res){
                     done();
+                });
+            });
+        });
+        describe('session requests', function(){
+            describe('no session',function(){
+                it('returns a boolean false', function(done){
+                    request(app).get('/admin/getSession').expect(200).end(function(err,res){
+                        var obj= JSON.parse(res.text);
+                        assert.strictEqual(obj.isSession, false);
+                        done();
+                    });
+                });
+            });
+            describe('is session', function(){
+                it('returns proper details about user', function(done){
+                    server.get('/admin/getSession').expect(200).end(function(err,res){
+                        var obj=JSON.parse(res.text);
+                        assert.strictEqual(obj.firstName, "Cody");
+                        assert.strictEqual(obj.lastName, "Stocker");
+                        assert.strictEqual(obj.id, "u1");
+                        assert.strictEqual(obj.isSession, true)
+                        done();
+                    });
+                });
+                it('does not return extra details', function(done){
+                    server.get('/admin/getSession').expect(200).end(function(err,res){
+                        var obj=JSON.parse(res.text);
+                        assert.strictEqual(Object.keys(obj).length, 4);
+                        done();
+                    });
                 });
             });
         });
@@ -938,7 +969,7 @@ describe("Test Server APIs", function(){
                                 });
                             });
                         });
-                        describe('valid groups', function(done){
+                        describe('valid groups', function(){
                             var sandbox;
                             var data = [];
                             data.push({id: "a", userMembers: ["1","2"], botMember: "3", name: "test"});
@@ -1847,6 +1878,314 @@ describe("Test Server APIs", function(){
                             assert.strictEqual(typeof obj.chatHistory[0].id, 'undefined');
                             done();
                         });
+                    });
+                });
+            });
+        });
+        describe('groupConversation/:convoId', function(){
+            describe('failing cases', function(){
+                describe('unauthorized access', function(){
+                    it('returns 401 error', function(done){
+                        request(app).get('/groupConversation/bad').expect(401).end(function(err,res){
+                            assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.get('/groupConversation/bad').expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding conversation"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.get('/groupConversation/bad').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid conversation"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding messages', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, {convo: "yes"});
+                        sandbox.stub(GroupMessages,'find').yields({error: "error"},null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.get('/groupConversation/bad').expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding messages"}');
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('passing cases', function(){
+                describe('no messages in conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, {convo: "yes"});
+                        sandbox.stub(GroupMessages,'find').yields(null,null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns boolean and message', function(done){
+                        server.get('/groupConversation/good').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.hasMessages, false);
+                            assert.strictEqual(obj.message, "No messages in conversation");
+                            done();
+                        });
+                    });
+                });
+                describe('messages in conversation', function(){
+                    var sandbox;
+                    var data = [];
+                    data.push({text:"Hello",id:"No",dateTime:new Date("2016-05-01"),from:"b"});
+                    data.push({text:"Goodbye",id:"No2",dateTime:new Date("2016-06-01"),from:"c"});
+                    data.push({text:"What",id:"No3",dateTime:new Date("2016-01-01"),from:"d"});
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, {convo: "yes"});
+                        sandbox.stub(GroupMessages,'find').yields(null,data);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns boolean and list of messages', function(done){
+                        server.get('/groupConversation/good').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.hasMessages, true);
+                            assert.strictEqual(obj.messages.length, 3);
+                            done();
+                        });
+                    });
+                    it('returns correct data in correct order', function(done){
+                        server.get('/groupConversation/good').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.messages[0].text, "What");
+                            assert.strictEqual(obj.messages[1].text, "Hello");
+                            assert.strictEqual(obj.messages[2].text, "Goodbye");
+                            done();
+                        });
+                    });
+                    it('messages do not have extra information', function(done){
+                        server.get('/groupConversation/good').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(Object.keys(obj.messages[0]).length, 3);
+                            assert.strictEqual(typeof obj.messages[0].id, 'undefined');
+                            done();
+                        });
+                    });
+                });
+            })
+        });
+        describe('group/:convoId', function(){
+            describe('failing cases', function(){
+                describe('unauthorized access', function(){
+                    it('returns 401 error', function(done){
+                        request(app).get('/group/bad').expect(401).end(function(err,res){
+                            assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding group', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.get('/group/bad').expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding conversation"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid group', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.get('/group/bad').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid conversation"}');
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('passing case', function(){
+                var sandbox;
+                before(function(){
+                    sandbox = sinon.sandbox.create();
+                    sandbox.stub(GroupConversations, 'findOne').yields(null, {name:"Hello", userMembers: ['a','b','c'], botMember:"d",id:"no"});
+                });
+                after(function(){
+                    sandbox.restore();
+                });
+                it('returns proper information', function(done){
+                    server.get('/group/good').expect(200).end(function(err,res){
+                        var obj = JSON.parse(res.text);
+                        assert.strictEqual(obj.name, "Hello");
+                        assert.strictEqual(obj.userMembers[0], 'a');
+                        assert.strictEqual(obj.botMember, "d");
+                        done();
+                    });
+                });
+                it('does not return extra information', function(done){
+                    server.get('/group/good').expect(200).end(function(err,res){
+                        var obj = JSON.parse(res.text);
+                        assert.strictEqual(Object.keys(obj).length, 3);
+                        assert.strictEqual(typeof obj.id, 'undefined');
+                        done();
+                    });
+                });
+            });
+        });
+        describe('groupUsers/:groupId', function(){
+            describe('failing cases', function(){
+                describe('unauthorized access', function(){
+                    it('returns 401 error', function(done){
+                        request(app).get('/groupUsers/bad').expect(401).end(function(err,res){
+                            assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.get('/groupUsers/bad').expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding conversation"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.get('/groupUsers/bad').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text,'{"statusCode":404,"message":"Invalid group"}');
+                            done();
+                        });
+                    });
+                });
+                var data = {userMembers: ['a','b','c']};
+                describe('error finding a user', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, data);
+                        sandbox.stub(Users, 'findOne').yields({error: "error"},null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.get('/groupUsers/bad').expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding users"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid user', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(GroupConversations, 'findOne').yields(null, data);
+                        sandbox.stub(Users, 'findOne').yields(null,null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error',function(done){
+                        server.get('/groupUsers/bad').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid user"}');
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('passing case', function(){
+                var sandbox;
+                var data = {userMembers: ['a','b','c']};
+                before(function(){
+                    thisSandbox.restore();
+                    sandbox = sinon.sandbox.create();
+                    sandbox.stub(GroupConversations, 'findOne').yields(null, data);
+                    var stub = sandbox.stub(Users, 'findOne');
+                    stub.withArgs({id: 'a'}).yields(null, {firstName: "alpha", lastName: "Beta", id: 'a', password: "uhoh"});
+                    stub.withArgs({id: 'b'}).yields(null, {firstName: "John", lastName: "Doe", id: 'b', password: "uhoh"});
+                    stub.withArgs({id: 'c'}).yields(null, {firstName: "Aaron", lastName: "Aaronson", id:'c', password: "uhoh"});
+                });
+                after(function(){
+                    sandbox.restore();
+                });
+                it('returns proper number of users in proper order', function(done){
+                    server.get('/groupUsers/good').expect(200).end(function(err,res){
+                        var obj = JSON.parse(res.text);
+                        assert.strictEqual(obj.users.length, 3);
+                        assert.strictEqual(obj.users[0].firstName, "Aaron");
+                        assert.strictEqual(obj.users[1].firstName, "alpha");
+                        assert.strictEqual(obj.users[2].firstName, "John");
+                        done();
+                    });
+                });
+                it('user objects do not have extra information', function(done){
+                    server.get('/groupUsers/good').expect(200).end(function(err,res){
+                        var obj = JSON.parse(res.text);
+                        assert.strictEqual(Object.keys(obj.users[0]).length, 3);
+                        assert.strictEqual(typeof obj.users[0].password, 'undefined');
+                        done();
                     });
                 });
             });

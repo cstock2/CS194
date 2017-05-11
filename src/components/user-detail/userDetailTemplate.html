@@ -19,7 +19,7 @@
     </div>
     <div ng-if="udc.hasGroups" class="main-subhead">Or continue these group conversations</div>
     <div ng-repeat="x in udc.groups">
-        <div>{{x.name}} with {{x.botMember}} and {{x.userMembers[0]}}</div>
+        <div ng-click="goToGroupConversation(x.id)" class="main-link">{{x.name}}</div>
     </div>
     <div ng-if="!udc.hasGroups" class="main-subhead">You have no current group messages</div>
 </body>

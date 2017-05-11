@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="main-title">{{gcc.group.name}}</div>
+    <div ng-repeat="x in gcc.messages.messages">
+        <div ng-if="gcc.isUser(x.from)" class="chat-user">
+            <div>{{x.text}}</div>
+            <div>{{x.dateTime}}</div>
+        </div>
+        <div ng-if="!gcc.isUser(x.from)" class="chat-other">
+            <div>{{gcc.idToMemberName[x.from]}}</div>
+            <div>{{x.text}}</div>
+            <div>{{x.dateTime}}</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,7 +8,22 @@ var app = express();
 var session = require('express-session');
 var requestObj = require('request');
 //app.use(session); //Below version is from code I wrote over the summer, do not remember totally what it does though
-app.use(session({secret: 'secretKey', resave: false, saveUninitialized: false}));
+//app.use(session({secret: 'secretKey', resave: false, saveUninitialized: false, cookie: {
+//    path: '/'
+//    ,expires: false // Alive Until Browser Exits
+//    ,httpOnly: true
+//    //  ,domain:'.example.com'
+//}}));
+app.use(session({
+    secret: 'secretKey',
+    cookie:{
+        path: '/',
+        expires: false,
+        httyOnly: true
+    },
+    saveUninitialized: true,
+    resave: true
+}));
 
 //MongoDB setup
 var mongoose = require('mongoose');
@@ -43,6 +58,23 @@ var server = app.listen(3002, function () {
 });
 
 //ADMIN FUNCTIONS, REGISTERING
+
+app.get('/admin/getSession', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.send(JSON.stringify({
+            isSession: false
+        }));
+        return
+    }
+    else{
+        response.send(JSON.stringify({
+            isSession: true,
+            firstName: request.session.user.firstName,
+            lastName: request.session.user.lastName,
+            id: request.session.user.id
+        }));
+    }
+});
 
 app.post('/admin/registerBot', function(request, response){
     if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean'){
@@ -455,8 +487,175 @@ app.post('/sendMessage', function(request, response){
     }
 });
 
+//app.post('/sendGroupMessages', function(request,response){
+//    if(typeof request.session.user === 'undefined'){
+//
+//    }
+//});
+
 
 //GET REQUESTS
+
+app.get('/groupConversation/:convoId', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return
+    }
+    GroupConversations.findOne({_id: request.params.convoId}, function(err,convo){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message: "Error finding conversation"
+            }));
+            return
+        }
+        else if(convo === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message: "Invalid conversation"
+            }));
+            return
+        }
+        GroupMessages.find({convoId: request.params.convoId}, function(err, messages){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding messages"
+                }));
+                return
+            }
+            else if(messages === null){
+                response.send(JSON.stringify({
+                    hasMessages:false,
+                    message: "No messages in conversation"
+                }));
+                return
+            }
+            var returnMessages = [];
+            var numMessages = messages.length;
+            for(var idx = 0; idx<numMessages; idx++){
+                var currMessage = messages[idx];
+                returnMessages.push({
+                    text: currMessage.text,
+                    from: currMessage.from,
+                    dateTime: currMessage.dateTime
+                });
+            }
+            returnMessages.sort(function func(a,b){
+                return a.dateTime > b.dateTime;
+            });
+            response.send(JSON.stringify({
+                hasMessages:true,
+                messages: returnMessages
+            }));
+        });
+    });
+});
+
+app.get('/groupUsers/:convoId', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return
+    }
+    GroupConversations.findOne({_id:request.params.convoId},function(err,group){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding conversation"
+            }));
+            return
+        }
+        else if(group === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Invalid group"
+            }));
+            return
+        }
+        var errorInUsers = false;
+        var badUser = false;
+        var groupUsers = [];
+        var calls = [];
+        group.userMembers.forEach(function(user, i){
+            calls.push(function(callback){
+                Users.findOne({id: user}, function(err,user){
+                    if(err){
+                        errorInUsers = true;
+                    }
+                    else if(user === null){
+                        badUser = true;
+                    }
+                    else{
+                        groupUsers.push({
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            id: user.id
+                        });
+                    }
+                    callback();
+                })});
+        });
+        async.series(calls, function(err,results){
+            if(badUser){
+                response.status(404).send(JSON.stringify({
+                    statusCode:404,
+                    message:"Invalid user"
+                }));
+                return
+            }
+            else if(errorInUsers){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding users"
+                }));
+                return
+            }
+            groupUsers.sort(function fun(a,b){
+                return a.lastName > b.lastName;
+            });
+            response.send(JSON.stringify({
+                users: groupUsers
+            }));
+        });
+    });
+});
+
+app.get('/group/:convoId', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return
+    }
+    GroupConversations.findOne({id:request.params.convoId},function(err,group){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding conversation"
+            }));
+            return
+        }
+        else if(group === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Invalid conversation"
+            }));
+            return
+        }
+        response.send(JSON.stringify({
+            name: group.name,
+            userMembers: group.userMembers,
+            botMember: group.botMember
+        }));
+    });
+});
 
 app.get('/groupMessages', function(request, response){
     if(typeof request.session.user === 'undefined'){
