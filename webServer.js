@@ -425,69 +425,113 @@ app.post('/sendMessage', function(request, response){
                 message: "Unauthorized"
             })
         );
+        return
     }
-    else{
-        //var botId = request.session.bot.id;
-        var message = request.body.text;
+    if(typeof request.body.text !== 'string' || request.body.text.length < 1 || typeof request.body.botId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return
+    }
+    Bots.findOne({id: request.body.botId}, function(err,bot){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding bot"
+            }));
+            return
+        }
+        else if(bot === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Invalid bot"
+            }));
+            return
+        }
         Messages.create({
-            to: request.session.bot.id,
+            to: request.body.botId,
             from: request.session.user.id,
-            text: message
+            text: request.body.text
         }, function(err, mess){
             if(err){
-                response.status(404).send(JSON.stringify({
-                    statusCode:404,
-                    message: "Error posting message to database"
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message: "Error creating message"
                 }));
+                return
             }
-            else{
-                mess.id = mess._id;
-                mess.save();
-                var postData = {text: message, userId: request.session.user.id, botId: request.session.bot.id};
-                var url = request.session.bot.url;
-                var options = {
-                    body:postData,
-                    json: true,
-                    url: url,
-                    timeout: 1500
-                };
-                requestObj.post(options, function(error, sResponse, body){
-                    if(error){
-                        response.status(404).send(JSON.stringify({
-                            statusCode:404,
-                            message: "Error in request.post"
+            mess.id = mess._id;
+            mess.save();
+            var postData = {text: request.body.text, userId: request.session.user.id, botId: request.body.botId};
+            var options = {
+                body:postData,
+                json: true,
+                url: bot.url,
+                timeout: 1500
+            };
+            requestObj.post(options, function(error, sResponse, body){
+                if(error){
+                    if(error.code === 'ETIMEDOUT'){
+                        if(error.connect === true){
+                            response.status(404).send(JSON.stringify({
+                                statusCode:404,
+                                message:"Could not send message to bot"
+                            }));
+                            return
+                        }
+                        response.status(200).send(JSON.stringify({
+                            sentMessage: true,
+                            receivedResponse: false
                         }));
+                        return
                     }
                     else{
-                        var responseMessage = body.text;
-                        Messages.create({
-                            to: request.session.user.id,
-                            from: request.session.bot.id,
-                            text: responseMessage
-                        }, function(err, mess2){
-                            if(err){
-                                response.status(404).send(JSON.stringify({
-                                    statusCode: 404,
-                                    message: "Error posting bot response to database"
-                                }));
-                            }
-                            else{
-                                mess2.id = mess2._id;
-                                mess2.save();
-                                var returnObj = {};
-                                returnObj.message = {};
-                                returnObj.message.text = mess2.text;
-                                returnObj.message.to = mess2.to;
-                                returnObj.message.from = mess2.from;
-                                returnObj.message.dateTime = mess2.dateTime;
-                                response.send(JSON.stringify(returnObj));
-                            }
-                        });
+                        response.status(500).send(JSON.stringify({
+                            statusCode:500,
+                            message:"Error posting to bot"
+                        }));
+                        return
                     }
+                }
+                if(typeof body.text !== 'string' || body.text.length < 1){
+                    response.status(400).send(JSON.stringify({
+                        statusCode:400,
+                        message:"Invalid bot response"
+                    }));
+                    return
+                }
+                var responseMessage = body.text;
+                Messages.create({
+                    to: request.session.user.id,
+                    from: request.body.botId,
+                    text: body.text
+                }, function(err, mess2){
+                    if(err){
+                        response.status(500).send(JSON.stringify({
+                            statusCode: 500,
+                            message: "Error posting bot response"
+                        }));
+                        return
+                    }
+                    mess2.id = mess2._id;
+                    mess2.save();
+                    //var returnObj = {};
+                    //returnObj.message = {};
+                    //returnObj.message.text = mess2.text;
+                    //returnObj.message.to = mess2.to;
+                    //returnObj.message.from = mess2.from;
+                    //returnObj.message.dateTime = mess2.dateTime;
+                    //response.send(JSON.stringify(returnObj));
+                    response.send(JSON.stringify({
+                        sentMessage: true,
+                        receivedResponse: true
+                    }));
                 });
-            }
+            });
         });
-    }
+    });
+
 });
 
 app.post('/sendGroupMessage', function(request,response){

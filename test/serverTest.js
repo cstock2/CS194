@@ -813,6 +813,7 @@ describe("Test Server APIs", function(){
                 });
             });
             describe('send message', function(){
+                var message = {text: "hello", botId: "a"};
                 describe('failing cases', function(){
                     describe('unauthorized access', function(){
                         it('returns 401 error', function(done){
@@ -822,20 +823,79 @@ describe("Test Server APIs", function(){
                             });
                         });
                     });
-                    describe('error creating user message', function(){
+                    describe('invalid arguments', function(){
+                        it('returns 400 error', function(done){
+                            server.post('/sendMessage').send({}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding bot', function(){
                         var sandbox;
                         before(function(){
                             sandbox = sinon.sandbox.create();
-                            sandbox.stub(Messages, 'create').yields({error: "error"}, null);
+                            sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/sendMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid bot', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, null);
                         });
                         after(function(){
                             sandbox.restore();
                         });
                         it('returns 404 error', function(done){
-                            var obj = {};
-                            obj.text = "hello";
-                            server.post('/sendMessage').send(obj).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error posting message to database"}');
+                            server.post('/sendMessage').send(message).expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error creating user message', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({from:"u1",to:"a",text:"hello"}).yields({error:"error"},null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/sendMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error creating message"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('timeout error', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields( {code: 'ETIMEDOUT', connect: true});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error', function(done){
+                            server.post('/sendMessage').send(message).expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Could not send message to bot"}');
                                 done();
                             });
                         });
@@ -844,17 +904,36 @@ describe("Test Server APIs", function(){
                         var sandbox;
                         before(function(){
                             sandbox = sinon.sandbox.create();
-                            sandbox.stub(requestObj, 'post').yields({error: "error"}, null, null);
-                            sandbox.stub(Messages, 'create').yields(null, {bot: "good", save: function fun(){}});
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields( {error:"error"});
                         });
                         after(function(){
                             sandbox.restore();
                         });
-                        it('returns 404 error', function(done){
-                            var obj = {};
-                            obj.text = "hello";
-                            server.post('/sendMessage').send(obj).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error in request.post"}');
+                        it('returns 500 error', function(done){
+                            server.post('/sendMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error posting to bot"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid bot response', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/sendMessage').send(message).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid bot response"}');
                                 done();
                             });
                         });
@@ -863,61 +942,65 @@ describe("Test Server APIs", function(){
                         var sandbox;
                         before(function(){
                             sandbox = sinon.sandbox.create();
-                            var goodArg = {to: 'b1', from: 'u1', text: 'hello'};
-                            sandbox.stub(requestObj, 'post').yields(null, null, {text: "hello"});
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to: 'u1', from: 'b1', text: "hello"}).yields({error: "error"}, null);
-                            stub.withArgs(goodArg).yields(null, {to: 'u1', from: 'b1', text: "hello", save: function(){}});
-
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {text:"goodbye"});
+                            stub.withArgs({to:"u1",from:"a",text:"goodbye"}).yields({error:"error"},null);
                         });
                         after(function(){
                             sandbox.restore();
                         });
-                        it('returns 404 error', function(done){
-                            var obj = {};
-                            obj.text = "hello";
-                            server.post('/sendMessage').send(obj).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error posting bot response to database"}');
+                        it('returns 500 error',function(done){
+                            server.post('/sendMessage').send(message).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error posting bot response"}');
                                 done();
                             });
                         });
                     });
                 });
-                describe('passing case', function(){ //database contents will be guaranteed by not failing the mongodb stuff
-                    var sandbox;
-                    before(function(){
-                        sandbox = sinon.sandbox.create();
-                        var goodArg1 = {to: 'b1', from: 'u1', text: 'hello'};
-                        var goodArg2 = {to: 'u1', from: 'b1', text: 'hello'};
-                        sandbox.stub(requestObj, 'post').yields(null, null, {text: "hello"});
-                        var stub = sandbox.stub(Messages, 'create');
-                        stub.withArgs(goodArg1).yields(null, {to:'u1',from:'b1',text:'hello',dateTime: Date.now(),save:function(){}});
-                        stub.withArgs(goodArg2).yields(null, {to:'b1',from:'u1',text:'hello',dateTime: Date.now(),save:function(){}});
-                    });
-                    after(function(){
-                        sandbox.restore();
-                    });
-                    it('returns bot message', function(done){
-                        var obj = {};
-                        obj.text = "hello";
-                        server.post('/sendMessage').send(obj).end(function(err,res){
-                            var retObj = JSON.parse(res.text);
-                            assert.strictEqual(retObj.message.text, "hello");
-                            done();
+                describe('passing cases', function(){ //database contents will be guaranteed by not failing the mongodb stuff
+                    describe('bot does not send response', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields( {code: 'ETIMEDOUT'});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns two booleans set properly', function(done){
+                            server.post('/sendMessage').send(message).expect(200).end(function(err,res){
+                                var obj =JSON.parse(res.text);
+                                assert.strictEqual(obj.sentMessage, true);
+                                assert.strictEqual(obj.receivedResponse, false);
+                                done();
+                            });
                         });
                     });
-                    it('does not return unneeded information about bot messsage', function(done){
-                        var obj = {};
-                        obj.text = "hello";
-                        server.post('/sendMessage').send(obj).end(function(err,res){
-                            var retObj = JSON.parse(res.text);
-                            assert.strictEqual(Object.keys(retObj.message).length, 4);
-                            assert.strictEqual(typeof retObj.message.to, "string");
-                            assert.strictEqual(typeof retObj.message.from, "string");
-                            assert.strictEqual(typeof retObj.message.text, "string");
-                            assert.strictEqual(typeof retObj.message.dateTime, "number");
-                            //AND MAKE SURE THAT ALL OF THE FIELDS MATCH WHAT YOU WANT. DO THIS FOR OTHERS TOO!!
-                            done();
+                    describe('bot sends response', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {text:"goodbye"});
+                            stub.withArgs({to:"u1",from:"a",text:"goodbye"}).yields(null,{_id:"c",save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns two booleans set properly', function(done){
+                            server.post('/sendMessage').send(message).expect(200).end(function(err,res){
+                                var obj =JSON.parse(res.text);
+                                assert.strictEqual(obj.sentMessage, true);
+                                assert.strictEqual(obj.receivedResponse, true);
+                                done();
+                            });
                         });
                     });
                 });

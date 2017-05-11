@@ -73,6 +73,7 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams', func
         if($scope.cc.myMessage !== ""){
             var message = {};
             message.text = $scope.cc.myMessage;
+            message.botId = $scope.cc.currBot.id;
             var resource = $resource('/sendMessage', {} ,
                 {
                     'save': {
