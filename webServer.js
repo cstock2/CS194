@@ -632,7 +632,7 @@ app.post('/sendGroupMessage', function(request,response){
                     GroupMessages.create({
                         convoId: request.body.convoId,
                         from: convo.botMember,
-                        text: body.text,
+                        text: body.text
                     },function(err, newMessage){
                         if(err){
                             response.status(500).send(JSON.stringify({
@@ -652,6 +652,97 @@ app.post('/sendGroupMessage', function(request,response){
             });
         });
 
+    });
+});
+
+app.post('/makeGroup', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return
+    }
+    if(Object.keys(request.body).length !== 3 || !Array.isArray(request.body.users)|| typeof request.body.name !== 'string' || typeof request.body.name.length < 1 || typeof request.body.botId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return
+    }
+    Bots.findOne({_id: request.body.botId}, function(err,bot){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding bot"
+            }));
+            return
+        }
+        else if(bot === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Invalid bot"
+            }));
+            return
+        }
+        var calls = [];
+        var errorInUsers = false;
+        var badUser = false;
+        request.body.users.forEach(function(user, i){
+            calls.push(function(callback){
+                Users.findOne({id: user}, function(err,user){
+                    if(err){
+                        errorInUsers = true;
+                    }
+                    else if(user === null){
+                        badUser = true;
+                    }
+                    callback();
+                });
+            });
+        });
+        async.series(calls, function(err,results){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error in async"
+                }));
+                return
+            }
+            else if(errorInUsers){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return
+            }
+            else if(badUser){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid users"
+                }));
+                return
+            }
+            GroupConversations.create({
+                userMembers:request.body.users,
+                botMember:request.body.botId,
+                name:request.body.name
+            }, function(err,groupObj){
+                if(err){
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
+                        message:"Error creating group"
+                    }));
+                    return
+                }
+                groupObj.id = groupObj._id;
+                groupObj.save();
+                response.send(JSON.stringify({
+                    id: groupObj.id,
+                    success: true
+                }));
+            });
+        });
     });
 });
 
@@ -859,20 +950,25 @@ app.get('/groupMessages', function(request, response){
     });
 });
 
-
-//Currently not functional
-app.get('/getFriendList', function(request,response){
+app.get('/getFriendInfo/:type', function(request,response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
             statusCode:401,
             message:"Unauthorized"
         }));
-        return;
+        return
     }
-    Users.findOne({_id: request.session.user.id}, function(err, user){
+    if(request.params.type !== 'friends' && request.params.type !== 'pending' && request.params.type !== 'sentRequests'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return
+    }
+    Users.findOne({id: request.session.user.id}, function(err,user){
         if(err){
-            response.status(404).send(JSON.stringify({
-                statusCode:404,
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
                 message:"Error finding user"
             }));
             return
@@ -880,72 +976,80 @@ app.get('/getFriendList', function(request,response){
         else if(user === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
-                message:"Invalid user"
+                message:"Invalid login"
             }));
             return
         }
-        var friends = user.friends;
-        var friendDetails = [];
-        var findOneError = false;
-        var nullFriend = false;
         var calls = [];
-        console.log(friends);
-        //async.each(friends, function(friend, done_callback){
-        //
-        //});
-        for(var idx = 0; idx < friends.length; idx++) {
-            console.log(idx);
-            var func = (function(i){
-                console.log(i);
-                //console.log("Got here");
-                calls.push(function(callback){
-                    Users.findOne({_id: friends[i]}, function (err, friendUser) {
-                        console.log("inside the user findone");
-                        console.log(friends[i]);
-                        if (err) {
-                            console.log("Got an error here");
-                            response.status(404).send(JSON.stringify({
-                                statusCode: 404,
-                                message: "Error finding friend"
-                            }));
-                            console.log("about to return from error");
-                            callback(err);
-                            return
-                        }
-                        else if (friendUser === null) {
-                            console.log("could not find friend");
-                            response.status(404).send(JSON.stringify({
-                                statusCode: 404,
-                                message: "Friend does not exist"
-                            }));
-                            console.log("about to return from find error");
-                            callback(err);
-                            return
-                        }
-                        else {
-                            var friendObj = {};
-                            friendObj.firstName = friendUser.firstName;
-                            friendObj.lastName = friendUser.lastName;
-                            friendObj.id = friendUser.id;
-                            friendDetails.push(friendObj);
-                            callback(friendObj);
-                        }
-                    })(idx);
+        var errorInUsers = false;
+        var badUser = false;
+        var userFriends = [];
+        var arrayOfPeople = [];
+        if(request.params.type === 'friends'){
+            arrayOfPeople = user.friends;
+        }
+        else if(request.params.type === 'sentRequests'){
+            arrayOfPeople = user.friendRequests;
+        }
+        else{
+            arrayOfPeople = user.pendingFriendRequests;
+        }
+        if(arrayOfPeople.length === 0){
+            response.send(JSON.stringify({
+                noData: true,
+                people: []
+            }));
+            return
+        }
+        arrayOfPeople.forEach(function(friend, i){
+            calls.push(function(callback){
+                Users.findOne({id: friend}, function(err,userObj){
+                    if(err){
+                        errorInUsers = true;
+                    }
+                    else if(userObj === null){
+                        badUser = true;
+                    }
+                    else{
+                        userFriends.push({
+                            firstName:userObj.firstName,
+                            lastName:userObj.lastName,
+                            id:userObj.id
+                        });
+                    }
+                    callback();
                 });
             });
-            //calls.push(function (callback) {
-
-            //});
-        }
-        console.log(calls);
-        async.parallel(calls, function(err,result){
-            console.log("In the async.parallel");
-            console.log(err);
-            //console.log(result);
-            var returnObj = {};
-            returnObj.friendList = friendDetails;
-            //response.send(returnObj);
-            response.send(JSON.stringify(returnObj));
+        });
+        async.series(calls, function(err,results){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error in async"
+                }));
+                return
+            }
+            else if(errorInUsers){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding users"
+                }));
+                return
+            }
+            else if(badUser){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error in friends list"
+                }));
+                return
+            }
+            userFriends.sort(function alpha(a,b){
+                return a.lastName > b.lastName
+            });
+            response.send(JSON.stringify({
+                noData: false,
+                people:userFriends
+            }));
         });
     });
 });
@@ -1481,6 +1585,13 @@ app.post('/botSendGroupMessage', function(request,response){
                 response.status(404).send(JSON.stringify({
                     statusCode:404,
                     message:"Invalid conversation"
+                }));
+                return
+            }
+            else if(convo.botMember !== bot.id){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Bot not member of conversation"
                 }));
                 return
             }
