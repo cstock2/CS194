@@ -5,12 +5,40 @@
 chatApp.controller('GroupChatController', ['$scope', '$location', '$resource', '$routeParams', function($scope,$location,$resource,$routeParams){
     $scope.gcc = {};
     $scope.gcc.idToMemberName = [];
+    $scope.gcc.myMessage = "";
 
     $scope.gcc.isUser = function(recipient){
         if(recipient === $scope.main.userId){
             return true;
         }
         return false;
+    };
+
+    $scope.handleMessageError = function(err){
+        console.log(err);
+        //We can probably do more here, but this would handle if there are problems with the database
+    };
+
+    $scope.gcc.sendMessage = function(){
+        console.log("Got here");
+        if($scope.gcc.myMessage !== ""){
+            var message = {};
+            message.text = $scope.gcc.myMessage;
+            message.convoId = $routeParams.convoId;
+            var resource = $resource('/sendGroupMessage', {} ,
+                {
+                    'save': {
+                        method: 'POST',
+                        interceptor: {responseError: $scope.handleMessageError}
+                    }
+                });
+            var data = resource.save(JSON.stringify(message), function(err, returnObj){
+                console.log(data);
+                if(returnObj !== null){
+                    $scope.makePage();
+                }
+            });
+        }
     };
 
     $scope.makePage = function(){

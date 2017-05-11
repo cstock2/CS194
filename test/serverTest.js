@@ -1178,8 +1178,8 @@ describe("Test Server APIs", function(){
                             sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
                             sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
                             var stub = sandbox.stub(GroupMessages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
-                            stub.withArgs({to:"a",from:"b",text:"goodbye"}).yields({error:"error"}, null);
+                            stub.withArgs({convoId:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
+                            stub.withArgs({convoId:"a",from:"b",text:"goodbye"}).yields({error:"error"}, null);
                             sandbox.stub(requestObj, 'post').yields(null,null,{text: "goodbye"});
                         });
                         after(function(){
@@ -1201,7 +1201,7 @@ describe("Test Server APIs", function(){
                             sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
                             sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
                             var stub = sandbox.stub(GroupMessages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
+                            stub.withArgs({convoId:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
                             sandbox.stub(requestObj, 'post').yields({code: 'ETIMEDOUT'},null,null);
                         });
                         after(function(){
@@ -1223,8 +1223,8 @@ describe("Test Server APIs", function(){
                             sandbox.stub(GroupConversations, 'findOne').yields(null, {botMember: "b"});
                             sandbox.stub(Bots, 'findOne').yields(null, {id: "a", url: "http://example.com"});
                             var stub = sandbox.stub(GroupMessages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
-                            stub.withArgs({to:"a",from:"b",text:"goodbye"}).yields(null, {_id:"d",save:function fun(){}});
+                            stub.withArgs({convoId:"a",from:"u1",text:"hello"}).yields(null, {_id:"c", save: function fun(){}});
+                            stub.withArgs({convoId:"a",from:"b",text:"goodbye"}).yields(null, {_id:"d",save:function fun(){}});
                             sandbox.stub(requestObj, 'post').yields(null,null,{text: "goodbye"});
                         });
                         after(function(){
@@ -2511,6 +2511,123 @@ describe("Test Server APIs", function(){
         });
     });
     describe('bot utilities', function(){
+        describe('botSendGroupMessage', function(){
+            var message = {convoId: "a", botId: "b", text: "hello"};
+            describe('failing cases', function(){
+                describe('invalid arguments', function(){
+                    it('returns 400 error', function(done){
+                        server.post('/botSendGroupMessage').send({}).expect(400).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding bot', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.post('/botSendGroupMessage').send(message).expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding bot"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid bot', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.post('/botSendGroupMessage').send(message).expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid bot"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                        sandbox.stub(GroupConversations, 'findOne').yields({error:"error"},null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.post('/botSendGroupMessage').send(message).expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding conversation"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid conversation', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                        sandbox.stub(GroupConversations, 'findOne').yields(null,null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.post('/botSendGroupMessage').send(message).expect(404).end(function(Err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid conversation"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error posting message', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                        sandbox.stub(GroupConversations, 'findOne').yields(null,{convo:"a"});
+                        sandbox.stub(GroupMessages, 'create').yields({error:"error"},null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.post('/botSendGroupMessage').send(message).expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error saving message"}');
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('passing case', function(){
+                var sandbox;
+                before(function(){
+                    sandbox = sinon.sandbox.create();
+                    sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                    sandbox.stub(GroupConversations, 'findOne').yields(null,{convo:"a"});
+                    sandbox.stub(GroupMessages, 'create').yields(null, {_id:"a", save:function fun(){}});
+                });
+                after(function(){
+                    sandbox.restore();
+                });
+                it('returns proper boolean', function(done){
+                    server.post('/botSendGroupMessage').send(message).expect(200).end(function(err,res){
+                        var obj = JSON.parse(res.text);
+                        assert.strictEqual(obj.success, true);
+                        assert.strictEqual(Object.keys(obj).length, 1);
+                        done();
+                    });
+                });
+            });
+        });
         describe('userConversation', function(){
             describe('failing cases', function(){
                 describe('error in messages.find', function(){
