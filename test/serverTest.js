@@ -24,7 +24,7 @@ describe("Test Server APIs", function(){
     describe("authentication and registration", function(){
         describe('/admin/registerBot', function(){
             describe('failing cases', function(){
-                var badBot = {name: "badBot", url: "bad_bot.com", description: "This is a bad bot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: false};
+                var badBot = {username: "badBot", password: "ok", name: "badBot", url: "bad_bot.com", description: "This is a bad bot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: false};
                 describe('proper arguments not provided', function(){
                     it('404 with no body', function(done){
                         request(app).post('/admin/registerbot').send().expect(404).end(function(err,res){
@@ -52,7 +52,7 @@ describe("Test Server APIs", function(){
                     });
                 });
                 describe('arguments do not match each other', function(){
-                    var badBot2 = {name: "badBot", url: "bad_bot.com", description: "badBot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: true};
+                    var badBot2 = {name: "badBot", url: "bad_bot.com",username:"badBot",password:"bad", description: "badBot", basicPerm: true, emailPerm: false, birthdayPerm: false, locationPerm: false, allPerm: true};
                     it('404 with booleans not in agreement', function(done){
                         request(app).post('/admin/registerbot').send(badBot2).expect(404).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid arguments"}');
@@ -92,13 +92,13 @@ describe("Test Server APIs", function(){
                         });
                     });
                 });
-                describe('error checking database for botName', function(){
+                describe('error checking database for username', function(){
                     var sandbox;
                     before(function(){
                         sandbox = sinon.sandbox.create();
                         var stub = sandbox.stub(Bots, 'findOne');
                         stub.withArgs({url: "bad_bot.com"}).yields(null, null);
-                        stub.withArgs({name: "badBot"}).yields({error: "error"}, null);
+                        stub.withArgs({username: "badBot"}).yields({error: "error"}, null);
                     });
                     after(function(){
                         sandbox.restore();
@@ -110,13 +110,13 @@ describe("Test Server APIs", function(){
                         });
                     });
                 });
-                describe('botName already exists', function(){
+                describe('username already exists', function(){
                     var sandbox;
                     before(function(){
                         sandbox = sinon.sandbox.create();
                         var stub = sandbox.stub(Bots, 'findOne');
                         stub.withArgs({url: "bad_bot.com"}).yields(null, null);
-                        stub.withArgs({name: "badBot"}).yields(null, {name: "Exists"});
+                        stub.withArgs({username: "badBot"}).yields(null, {username: "Exists"});
                     });
                     after(function(){
                         sandbox.restore();
@@ -134,7 +134,7 @@ describe("Test Server APIs", function(){
                         sandbox = sinon.sandbox.create();
                         var stub = sandbox.stub(Bots, 'findOne');
                         stub.withArgs({url: "bad_bot.com"}).yields(null, null);
-                        stub.withArgs({name: "badBot"}).yields(null, null);
+                        stub.withArgs({username: "badBot"}).yields(null, null);
                         sandbox.stub(requestObj, 'post').yields({error: "error"}, null, null);
                     });
                     after(function(done){
@@ -150,7 +150,7 @@ describe("Test Server APIs", function(){
                         sandbox = sinon.sandbox.create();
                         var stub = sandbox.stub(Bots, 'findOne');
                         stub.withArgs({url: "bad_bot.com"}).yields(null, null);
-                        stub.withArgs({name: "badBot"}).yields(null, null);
+                        stub.withArgs({username: "badBot"}).yields(null, null);
                         sandbox.stub(requestObj, 'get').yields(null); //this may need to be null, null
                     });
                     after(function(){
@@ -169,7 +169,7 @@ describe("Test Server APIs", function(){
                         sandbox = sinon.sandbox.create();
                         var stub = sandbox.stub(Bots, 'findOne');
                         stub.withArgs({url: "bad_bot.com"}).yields(null, null);
-                        stub.withArgs({name: "badBot"}).yields(null, null);
+                        stub.withArgs({username: "badBot"}).yields(null, null);
                         sandbox.stub(requestObj, 'get').yields(null, null, null);
                         sandbox.stub(Bots, 'create').yields({error: "error"},null);
                     });
@@ -193,14 +193,16 @@ describe("Test Server APIs", function(){
                     emailPerm: true,
                     birthdayPerm: true,
                     locationPerm: true,
-                    allPerm: true
+                    allPerm: true,
+                    username: 'notTaken',
+                    password: 'clever'
                 };
                 var sandbox;
                 before(function() {
                     sandbox = sinon.sandbox.create();
                     var stub = sandbox.stub(Bots, 'findOne');
                     stub.withArgs({url: "goodUrl"}).yields(null, null);
-                    stub.withArgs({name: "notTaken"}).yields(null, null);
+                    stub.withArgs({username: "notTaken"}).yields(null, null);
                     sandbox.stub(requestObj, 'get').yields(null, null, null);
                     sandbox.stub(Bots, 'create').yields(null,{_id: "a", save:function(){}});
                 });
@@ -212,6 +214,67 @@ describe("Test Server APIs", function(){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.text, "Successfully added bot");
                         done();
+                    });
+                });
+            });
+        });
+        describe('/admin/botLogin', function(){
+            var bot = {username: "test", password: "test"};
+            describe('failing cases', function(){
+                describe('invalid parameters', function(){
+                    it('returns 400 error', function(done){
+                        request(app).post('/admin/botLogin').send({}).expect(400).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error in Bots.find', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields({error:"error"},null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error',function(done){
+                        request(app).post('/admin/botLogin').send(bot).expect(500).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding bot"}');
+                            done();
+                        });
+                    });
+                });
+                describe('bot does not exist', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 401 error', function(done){
+                        request(app).post('/admin/botLogin').send(bot).expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Invalid username or password"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid password', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {username:"test",password:"no"});
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 401 error',function(done){
+                        request(app).post('/admin/botLogin').send(bot).expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Invalid username or password"}');
+                            done();
+                        });
                     });
                 });
             });
@@ -263,7 +326,7 @@ describe("Test Server APIs", function(){
                 describe('returns correct display name', function(){
                     var sandbox;
                     before(function(){
-                        sandbox = new sinon.sandbox.create();
+                        sandbox = sinon.sandbox.create();
                         //THIS NEXT LINE SETS THE SESSION FOR THE REST OF THE TESTS!!!!!!
                         sandbox.stub(Users, 'findOne').yields(null, {firstName: "Cody", lastName: "Stocker", password: "correct", id: "u1"});
                     });
@@ -310,7 +373,7 @@ describe("Test Server APIs", function(){
                 describe('problem with User.findone', function(){
                     var sandbox;
                     before(function(){
-                        sandbox = new sinon.sandbox.create();
+                        sandbox = sinon.sandbox.create();
                         sandbox.stub(Users, 'findOne').yields({error: "error"}, null);
                     });
                     after(function(){
@@ -326,7 +389,7 @@ describe("Test Server APIs", function(){
                 describe('user already found', function(){
                     var sandbox;
                     before(function(){
-                        sandbox = new sinon.sandbox.create();
+                        sandbox = sinon.sandbox.create();
                         sandbox.stub(Users, 'findOne').yields(null, {exists: "yes"});
                     });
                     after(function(){
@@ -342,7 +405,7 @@ describe("Test Server APIs", function(){
                 describe('error creating user', function(){
                     var sandbox;
                     before(function(){
-                        sandbox = new sinon.sandbox.create();
+                        sandbox = sinon.sandbox.create();
                         sandbox.stub(Users, 'findOne').yields(null, null);
                         sandbox.stub(Users, 'create').yields({error: "yes"}, null);
                     });
@@ -359,7 +422,15 @@ describe("Test Server APIs", function(){
             });
             describe('passing cases', function(){
                 describe('returns correct data', function(){
-                    //keep in mind that this will keep adding people to the database, so you want to do a clear of the system before running the program
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Users, 'findOne').yields(null, null);
+                        sandbox.stub(Users, 'create').yields(null, {_id: "a", firstName: "Cody", lastName: "Stocker", save:function fun(){}});
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
                     var data = {firstName: "Cody", lastName: "Stocker", location: "Chicago", password1: "red", password2: "red", gender:"male",emailAddress: "codywstocker", birthday: new Date("01-01-2001 00:00 PDT")};
                     it('returns correct username', function(done){
                         request(app).post('/admin/register').send(data).expect(200).end(function(err,res){
@@ -393,12 +464,24 @@ describe("Test Server APIs", function(){
                 id: "u1",
                 currentBots: ["1","2","3","5"]
             });
-            thisSandbox.stub(Bots, 'findOne').yields(null, {id: "b1", url: "ex@ex.com", name: "testBot"});
+            thisSandbox.stub(Bots, 'findOne').yields(null, {
+                id: "b1",
+                username: "test",
+                password: "test",
+                name: "testBot",
+                description: "a test bot"
+            });
+            //thisSandbox.stub(Bots, 'findOne').yields(null, {id: "b1", url: "ex@ex.com", name: "testBot"});
             server.post('/admin/login').send({user: {username: "Cody", password: "correct"}}).expect(200).end(function(err, res){
                 cookie = res.headers['set-cookie'];
-                server.get('/getBot/id').expect(200).end(function(err,res){
-                    done();
-                });
+                done();
+                //server.get('/getBot/id').expect(200).end(function(err,res){
+                //    done();
+                //});
+                //server.post('/admin/botLogin').send({username: "test", password: "test"}).expect(200).end(function(err,res){
+                //
+                //});
+                //done();
             });
         });
         describe('session requests', function(){
@@ -560,129 +643,6 @@ describe("Test Server APIs", function(){
                     });
                     it('returns only a boolean true', function(done){
                         server.post('/sendUserUserMessage').send(message).expect(200).end(function(err,res){
-                            var obj = JSON.parse(res.text);
-                            assert.strictEqual(Object.keys(obj).length, 1);
-                            assert.strictEqual(obj.success, true);
-                            done();
-                        });
-                    });
-                });
-            });
-            describe('botSendMessage', function(){
-                var message = {botId: "alpha", userId: "beta", text: "gamma"};
-                describe('failing cases', function(){
-                    describe('invalid arguments', function(){
-                        it('returns 404 error', function(done){
-                            request(app).post('/botSendMessage').send({}).expect(404).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid arguments"}');
-                                done();
-                            });
-                        });
-                    });
-                    describe('error finding bot', function(){
-                        var sandbox;
-                        before(function(){
-                            thisSandbox.restore();
-                            sandbox = sinon.sandbox.create();
-                            sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
-                        });
-                        after(function(){
-                            sandbox.restore();
-                        });
-                        it('returns 404 error', function(done){
-                            request(app).post('/botSendMessage').send(message).expect(404).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding bot"}');
-                                done();
-                            });
-                        });
-                    });
-                    describe('invalid bot', function(){
-                        var sandbox;
-                        before(function(){
-                            thisSandbox.restore();
-                            sandbox = sinon.sandbox.create();
-                            sandbox.stub(Bots, 'findOne').yields(null, null);
-                        });
-                        after(function(){
-                            sandbox.restore();
-                        });
-                        it('returns 404 error', function(done){
-                            request(app).post('/botSendMessage').send(message).expect(404).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid bot"}');
-                                done();
-                            });
-                        });
-                    });
-                    describe('error finding user', function(){
-                        var sandbox;
-                        before(function(){
-                            thisSandbox.restore();
-                            sandbox = sinon.sandbox.create();
-                            sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
-                            sandbox.stub(Users, 'findOne').yields({error: "error"}, null);
-                        });
-                        after(function(){
-                            sandbox.restore();
-                        });
-                        it('returns 404 error', function(done){
-                            request(app).post('/botSendMessage').send(message).expect(404).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding user"}');
-                                done();
-                            });
-                        });
-                    });
-                    describe('invalid user', function(){
-                        var sandbox;
-                        before(function(){
-                            thisSandbox.restore();
-                            sandbox = sinon.sandbox.create();
-                            sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
-                            sandbox.stub(Users, 'findOne').yields(null, null);
-                        });
-                        after(function(){
-                            sandbox.restore();
-                        });
-                        it('returns 404 error', function(done){
-                            request(app).post('/botSendMessage').send(message).expect(404).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid user"}');
-                                done();
-                            });
-                        });
-                    });
-                    describe('error creating message', function(){
-                        var sandbox;
-                        before(function(){
-                            thisSandbox.restore();
-                            sandbox = sinon.sandbox.create();
-                            sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
-                            sandbox.stub(Users, 'findOne').yields(null, {user: "user"});
-                            sandbox.stub(Messages, 'create').yields({error: "error"}, null);
-                        });
-                        after(function(){
-                            sandbox.restore();
-                        });
-                        it('returns 404 error', function(done){
-                            request(app).post('/botSendMessage').send(message).expect(404).end(function(err,res){
-                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Error creating message"}');
-                                done();
-                            });
-                        });
-                    });
-                });
-                describe('passing case', function(){
-                    var sandbox;
-                    before(function(){
-                        thisSandbox.restore();
-                        sandbox = sinon.sandbox.create();
-                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
-                        sandbox.stub(Users, 'findOne').yields(null, {user: "user"});
-                        sandbox.stub(Messages, 'create').yields(null, {_id: "alpha", save: function(){}});
-                    });
-                    after(function(){
-                        sandbox.restore();
-                    });
-                    it('returns boolean true', function(done){
-                        request(app).post('/botSendMessage').send(message).expect(200).end(function(err,res){
                             var obj = JSON.parse(res.text);
                             assert.strictEqual(Object.keys(obj).length, 1);
                             assert.strictEqual(obj.success, true);
@@ -2696,9 +2656,33 @@ describe("Test Server APIs", function(){
         });
     });
     describe('bot utilities', function(){
+        var cookie;
+        var thisSandbox;
+        before(function(done){
+            thisSandbox = sinon.sandbox.create();
+            thisSandbox.stub(Bots, 'findOne').yields(null, {
+                id: "b1",
+                username: "test",
+                password: "test",
+                name: "testBot",
+                description: "a test bot"
+            });
+            server.post('/admin/botLogin').send({username: "test", password: "test"}).expect(200).end(function(err,res){
+                cookie = res.headers['set-cookie'];
+                done();
+            });
+        });
         describe('botSendGroupMessage', function(){
             var message = {convoId: "a", botId: "b", text: "hello"};
             describe('failing cases', function(){
+                describe('unauthorized', function(){
+                    it('returns 401 error', function(done){
+                        request(app).post('/botSendGroupMessage').send({}).expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
                 describe('invalid arguments', function(){
                     it('returns 400 error', function(done){
                         server.post('/botSendGroupMessage').send({}).expect(400).end(function(err,res){
@@ -2710,6 +2694,7 @@ describe("Test Server APIs", function(){
                 describe('error finding bot', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
                     });
@@ -2726,6 +2711,7 @@ describe("Test Server APIs", function(){
                 describe('invalid bot', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, null);
                     });
@@ -2742,6 +2728,7 @@ describe("Test Server APIs", function(){
                 describe('error finding conversation', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
                         sandbox.stub(GroupConversations, 'findOne').yields({error:"error"},null);
@@ -2759,6 +2746,7 @@ describe("Test Server APIs", function(){
                 describe('invalid conversation', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
                         sandbox.stub(GroupConversations, 'findOne').yields(null,null);
@@ -2776,6 +2764,7 @@ describe("Test Server APIs", function(){
                 describe('bot not member of conversation', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot", id: "a"});
                         sandbox.stub(GroupConversations, 'findOne').yields(null,{botMember: "b"});
@@ -2793,6 +2782,7 @@ describe("Test Server APIs", function(){
                 describe('error posting message', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot", id: "a"});
                         sandbox.stub(GroupConversations, 'findOne').yields(null,{botMember: "a", convo:"a"});
@@ -2812,6 +2802,7 @@ describe("Test Server APIs", function(){
             describe('passing case', function(){
                 var sandbox;
                 before(function(){
+                    thisSandbox.restore();
                     sandbox = sinon.sandbox.create();
                     sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot", id: "a"});
                     sandbox.stub(GroupConversations, 'findOne').yields(null,{botMember: "a", convo:"a"});
@@ -2832,6 +2823,14 @@ describe("Test Server APIs", function(){
         });
         describe('userConversation', function(){
             describe('failing cases', function(){
+                describe('unauthorized', function(){
+                    it('returns 401 error', function(done){
+                        request(app).post('/botSendGroupMessage').send({}).expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
                 describe('error in messages.find', function(){
                     var sandbox;
                     before(function(){
@@ -2842,7 +2841,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 404 error', function(done){
-                        request(app).get('/userConversation/badUser/badBot').expect(404).end(function(err,res){
+                        server.get('/userConversation/badUser/badBot').expect(404).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding messages"}');
                             done();
                         });
@@ -2864,14 +2863,14 @@ describe("Test Server APIs", function(){
                     sandbox.restore();
                 });
                 it('has correct number of messages', function(done){
-                    request(app).get('/userConversation/goodUser/goodBot').expect(200).end(function(err,res){
+                    server.get('/userConversation/goodUser/goodBot').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.chatHistory.length, 4);
                         done();
                     });
                 });
                 it('has correct ordering of messages', function(done){
-                    request(app).get('/userConversation/goodUser/goodBot').expect(200).end(function(err,res){
+                    server.get('/userConversation/goodUser/goodBot').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.chatHistory[0].text, "to");
                         assert.strictEqual(obj.chatHistory[1].text, "yo");
@@ -2879,7 +2878,7 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('does not return any message ids', function(done){
-                    request(app).get('/userConversation/goodUser/goodBot').expect(200).end(function(err,res){
+                    server.get('/userConversation/goodUser/goodBot').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(typeof obj.chatHistory[0].id, 'undefined');
                         done();
@@ -2887,13 +2886,21 @@ describe("Test Server APIs", function(){
                 });
             });
         });
-        describe('User basic detail', function(){
+        describe('botSendMessage', function(){
+            var message = {botId: "alpha", userId: "beta", text: "gamma"};
             describe('failing cases', function(){
-                var goodUser = {firstName:"John",lastName:"Doe",gender:"Male",password:"uhoh",basicAuthBots:['goodBot'],emailAuthBots:['goodBot'],locationAuthBots:['goodBot'],birthdayAuthBots:['goodBot'],allAuthBots:['goodBot']};
-                describe('invalid data request type', function(){
+                describe('unauthorized', function(){
+                    it('returns 401 error', function(done){
+                        request(app).post('/botSendGroupMessage').send({}).expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid arguments', function(){
                     it('returns 404 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/wrongType').expect(404).end(function(err,res){
-                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid type request"}');
+                        server.post('/botSendMessage').send({}).expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid arguments"}');
                             done();
                         });
                     });
@@ -2901,6 +2908,7 @@ describe("Test Server APIs", function(){
                 describe('error finding bot', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
                     });
@@ -2908,8 +2916,8 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 404 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/basic').expect(404).end(function(err,res){
-                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Error authenticating bot"}');
+                        server.post('/botSendMessage').send(message).expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding bot"}');
                             done();
                         });
                     });
@@ -2917,15 +2925,16 @@ describe("Test Server APIs", function(){
                 describe('invalid bot', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, null);
                     });
                     after(function(){
                         sandbox.restore();
                     });
-                    it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/basic').expect(401).end(function(err,res){
-                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Invalid bot id"}');
+                    it('returns 404 error', function(done){
+                        server.post('/botSendMessage').send(message).expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid bot"}');
                             done();
                         });
                     });
@@ -2933,15 +2942,16 @@ describe("Test Server APIs", function(){
                 describe('error finding user', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
-                        sandbox.stub(Bots, 'findOne').yields(null, {name: "Bot"});
+                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
                         sandbox.stub(Users, 'findOne').yields({error: "error"}, null);
                     });
                     after(function(){
                         sandbox.restore();
                     });
                     it('returns 404 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/basic').expect(404).end(function(err,res){
+                        server.post('/botSendMessage').send(message).expect(404).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding user"}');
                             done();
                         });
@@ -2950,6 +2960,138 @@ describe("Test Server APIs", function(){
                 describe('invalid user', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                        sandbox.stub(Users, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.post('/botSendMessage').send(message).expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid user"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error creating message', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                        sandbox.stub(Users, 'findOne').yields(null, {user: "user"});
+                        sandbox.stub(Messages, 'create').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.post('/botSendMessage').send(message).expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Error creating message"}');
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('passing case', function(){
+                var sandbox;
+                before(function(){
+                    thisSandbox.restore();
+                    sandbox = sinon.sandbox.create();
+                    sandbox.stub(Bots, 'findOne').yields(null, {bot: "bot"});
+                    sandbox.stub(Users, 'findOne').yields(null, {user: "user"});
+                    sandbox.stub(Messages, 'create').yields(null, {_id: "alpha", save: function(){}});
+                });
+                after(function(){
+                    sandbox.restore();
+                });
+                it('returns boolean true', function(done){
+                    server.post('/botSendMessage').send(message).expect(200).end(function(err,res){
+                        var obj = JSON.parse(res.text);
+                        assert.strictEqual(Object.keys(obj).length, 1);
+                        assert.strictEqual(obj.success, true);
+                        done();
+                    });
+                });
+            });
+        });
+        describe('User basic detail', function(){
+            describe('failing cases', function(){
+                describe('unauthorized', function(){
+                    it('returns 401 error', function(done){
+                        request(app).post('/botSendGroupMessage').send({}).expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
+                var goodUser = {firstName:"John",lastName:"Doe",gender:"Male",password:"uhoh",basicAuthBots:['goodBot'],emailAuthBots:['goodBot'],locationAuthBots:['goodBot'],birthdayAuthBots:['goodBot'],allAuthBots:['goodBot']};
+                describe('invalid data request type', function(){
+                    it('returns 404 error', function(done){
+                        server.get('/userInfo/badBot/badUser/wrongType').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid type request"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding bot', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.get('/userInfo/badBot/badUser/basic').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Error authenticating bot"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid bot', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 401 error', function(done){
+                        server.get('/userInfo/badBot/badUser/basic').expect(401).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":401,"message":"Invalid bot id"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding user', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'findOne').yields(null, {name: "Bot"});
+                        sandbox.stub(Users, 'findOne').yields({error: "error"}, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 404 error', function(done){
+                        server.get('/userInfo/badBot/badUser/basic').expect(404).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":404,"message":"Error finding user"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid user', function(){
+                    var sandbox;
+                    before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                         sandbox.stub(Users, 'findOne').yields(null, null);
@@ -2958,7 +3100,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/basic').expect(401).end(function(err,res){
+                        server.get('/userInfo/badBot/badUser/basic').expect(401).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":401,"message":"Invalid user id"}');
                             done();
                         });
@@ -2967,6 +3109,7 @@ describe("Test Server APIs", function(){
                 describe('not authorized to access user basic info', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                         sandbox.stub(Users, 'findOne').yields(null,goodUser);
@@ -2975,7 +3118,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/basic').expect(401).end(function(err,res){
+                        server.get('/userInfo/badBot/badUser/basic').expect(401).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":401,"message":"Not authorized"}');
                             done();
                         });
@@ -2984,6 +3127,7 @@ describe("Test Server APIs", function(){
                 describe('not authorized to access user email', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                         sandbox.stub(Users, 'findOne').yields(null,goodUser);
@@ -2992,7 +3136,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/email').expect(401).end(function(err,res){
+                        server.get('/userInfo/badBot/badUser/email').expect(401).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":401,"message":"Not authorized"}');
                             done();
                         });
@@ -3001,6 +3145,7 @@ describe("Test Server APIs", function(){
                 describe('not authorized to access user birthday', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                         sandbox.stub(Users, 'findOne').yields(null,goodUser);
@@ -3009,7 +3154,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/birthday').expect(401).end(function(err,res){
+                        server.get('/userInfo/badBot/badUser/birthday').expect(401).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":401,"message":"Not authorized"}');
                             done();
                         });
@@ -3018,6 +3163,7 @@ describe("Test Server APIs", function(){
                 describe('not authorized to access user location', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                         sandbox.stub(Users, 'findOne').yields(null,goodUser);
@@ -3026,7 +3172,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/location').expect(401).end(function(err,res){
+                        server.get('/userInfo/badBot/badUser/location').expect(401).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":401,"message":"Not authorized"}');
                             done();
                         });
@@ -3035,6 +3181,7 @@ describe("Test Server APIs", function(){
                 describe('not authorized to access user all', function(){
                     var sandbox;
                     before(function(){
+                        thisSandbox.restore();
                         sandbox = sinon.sandbox.create();
                         sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                         sandbox.stub(Users, 'findOne').yields(null,goodUser);
@@ -3043,7 +3190,7 @@ describe("Test Server APIs", function(){
                         sandbox.restore();
                     });
                     it('returns 401 error', function(done){
-                        request(app).get('/userInfo/badBot/badUser/all').expect(401).end(function(err,res){
+                        server.get('/userInfo/badBot/badUser/all').expect(401).end(function(err,res){
                             assert.strictEqual(res.text, '{"statusCode":401,"message":"Not authorized"}');
                             done();
                         });
@@ -3067,6 +3214,7 @@ describe("Test Server APIs", function(){
                     allAuthBots:['goodBot']};
                 var sandbox;
                 before(function(){
+                    thisSandbox.restore();
                     sandbox = sinon.sandbox.create();
                     sandbox.stub(Bots, 'findOne').yields(null, {name:"Bot"});
                     sandbox.stub(Users, 'findOne').yields(null, goodUser);
@@ -3075,7 +3223,7 @@ describe("Test Server APIs", function(){
                     sandbox.restore();
                 });
                 it('returns correct values for basic', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/basic').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/basic').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.firstName, "John");
                         assert.strictEqual(obj.lastName, "Doe");
@@ -3084,7 +3232,7 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('returns no extra values for basic', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/basic').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/basic').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(Object.keys(obj).length, 3);
                         assert.strictEqual(typeof obj.password, 'undefined');
@@ -3092,14 +3240,14 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('returns correct values for email', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/email').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/email').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.email, "john.doe@doe.gov");
                         done();
                     });
                 });
                 it('returns no extra values for email', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/email').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/email').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(Object.keys(obj).length, 1);
                         assert.strictEqual(typeof obj.firstName, 'undefined');
@@ -3107,14 +3255,14 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('returns correct values for location', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/location').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/location').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.location, "Doeville");
                         done();
                     });
                 });
                 it('returns no extra values for location', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/location').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/location').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(Object.keys(obj).length, 1);
                         assert.strictEqual(typeof obj.firstName, 'undefined');
@@ -3122,14 +3270,14 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('returns correct values for birthday', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/birthday').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/birthday').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.deepEqual(new Date(obj.birthday), birthday);
                         done();
                     });
                 });
                 it('returns no extra values for birthday', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/birthday').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/birthday').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(Object.keys(obj).length, 1);
                         assert.strictEqual(typeof obj.firstName, 'undefined');
@@ -3137,7 +3285,7 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('returns correct values for all', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/all').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/all').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(obj.firstName, "John");
                         assert.strictEqual(obj.lastName, "Doe");
@@ -3149,7 +3297,7 @@ describe("Test Server APIs", function(){
                     });
                 });
                 it('returns no extra values for all', function(done){
-                    request(app).get('/userInfo/goodBot/goodUser/all').expect(200).end(function(err,res){
+                    server.get('/userInfo/goodBot/goodUser/all').expect(200).end(function(err,res){
                         var obj = JSON.parse(res.text);
                         assert.strictEqual(Object.keys(obj).length, 6);
                         assert.strictEqual(typeof obj.password, 'undefined');

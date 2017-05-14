@@ -32,7 +32,9 @@ Promise.all(removePromises).then(function(){
             emailPerm: bot.emailPerm,
             birthdayPerm: bot.birthdayPerm,
             locationPerm: bot.locationPerm,
-            allPerm: bot.allPerm
+            allPerm: bot.allPerm,
+            username: bot.username,
+            password: bot.password
         }, function(err, botObj){
             if(err){
                 console.log("Error creating bot: ", err);

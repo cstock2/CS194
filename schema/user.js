@@ -7,13 +7,13 @@ var mongoose = require('mongoose');
 
 var UserSchema = new mongoose.Schema({
     id: String,
-    firstName: String,
-    lastName: String,
+    firstName: {type: String, required: true},
+    lastName: {type: String, required: true},
     gender: String,
     location: String,
-    password: String,
+    password: {type: String, required: true},
     birthday: {type: Date, default: Date.now},
-    email: String,
+    email: {type: String, required: true},
     basicAuthBots: {type: Array, default: []}, //any bot that a user has contact with
     emailAuthBots: {type: Array, default: []}, //any bot that a user has given email authorization to
     birthdayAuthBots: {type: Array, default: []}, //any bot that a user has given birthday authorization to

@@ -82,7 +82,9 @@ function getData(){
         emailPerm: true,
         locationPerm: true,
         birthdayPerm: true,
-        allPerm: true
+        allPerm: true,
+        username: "echo",
+        password: "echoBot"
     });
     bots.push({
         id: "11",
@@ -93,7 +95,9 @@ function getData(){
         emailPerm: false,
         locationPerm: false,
         birthdayPerm: false,
-        allPerm: false
+        allPerm: false,
+        username: "dummy",
+        password: "dummy"
     });
     bots.push({
         id: "12",
@@ -104,7 +108,9 @@ function getData(){
         emailPerm: true,
         locationPerm: false,
         birthdayPerm: false,
-        allPerm: false
+        allPerm: false,
+        username: "dummy2",
+        password: "dummy2"
     });
 
     var messages = [];

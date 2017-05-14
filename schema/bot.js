@@ -6,9 +6,11 @@ var mongoose = require('mongoose');
 
 var BotSchema = new mongoose.Schema({
     id: String,
-    name: String,
-    url: String,
-    description: String,
+    name: {type: String, required: true},
+    url: {type: String, required: true, unique: true},
+    description: {type: String, required: true},
+    username: {type: String, required: true, unique: true},
+    password: {type: String, required: true},
     basicPerm: {type: Boolean, default: true},
     emailPerm: {type: Boolean, default: false},
     locationPerm: {type: Boolean, default: false},

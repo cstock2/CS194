@@ -77,7 +77,7 @@ app.get('/admin/getSession', function(request,response){
 });
 
 app.post('/admin/registerBot', function(request, response){
-    if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean'){
+    if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean' || typeof request.body.username !== 'string' || typeof request.body.password !== 'string'){
         response.status(404).send(JSON.stringify({
             statusCode: 404,
             message: "Arguments not provided"
@@ -108,7 +108,7 @@ app.post('/admin/registerBot', function(request, response){
             }));
             return
         }
-        Bots.findOne({name: botName}, function(err, botObj2){
+        Bots.findOne({username: request.body.username}, function(err, botObj2){
             if(err){
                 response.status(404).send(JSON.stringify({
                     statusCode: 404,
@@ -151,7 +151,9 @@ app.post('/admin/registerBot', function(request, response){
                     emailPerm: request.body.emailPerm,
                     locationPerm: request.body.locationPerm,
                     birthdayPerm: request.body.birthdayPerm,
-                    allPerm: request.body.allPerm
+                    allPerm: request.body.allPerm,
+                    username: request.body.username,
+                    password: request.body.password
                 }, function(err, botObj){
                     if(err){
                         response.status(404).send(JSON.stringify({
@@ -204,6 +206,41 @@ app.post('/admin/login', function(request, response){
                 }
             }
         }
+    });
+});
+
+app.post('/admin/botLogin', function(request, response){
+    if(typeof request.body.username !=='string' || typeof request.body.password !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return
+    }
+    Bots.findOne({username: request.body.username}, function(err, botObj){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message: "Error finding bot"
+            }));
+            return
+        }
+        else if(botObj === null){
+            response.status(401).send(JSON.stringify({
+                statusCode:401,
+                message: "Invalid username or password"
+            }));
+            return
+        }
+        else if(botObj.password !== request.body.password){
+            response.status(401).send(JSON.stringify({
+                statusCode:401,
+                message: "Invalid username or password"
+            }));
+            return
+        }
+        request.session.botLogin = botObj;
+        response.send(JSON.stringify({id: botObj.id}))
     });
 });
 
@@ -347,7 +384,6 @@ app.post('/updatePermissions', function(request, response){
         }));
         return
     }
-    console.log(request.body);
     if(Object.keys(request.body).length !== 6 || (typeof request.body.botId !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
@@ -1443,6 +1479,13 @@ app.get('/conversation/:id', function(request, response){
 
 //BOT UTILITIES
 app.get('/userConversation/:botId/:userId', function(request,response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
     if(typeof request.params === 'undefined' || typeof request.params.userId === 'undefined' || typeof request.params.botId === 'undefined'){
         response.status(404).send(JSON.stringify({
             statusCode: 404,
@@ -1487,6 +1530,13 @@ app.get('/userConversation/:botId/:userId', function(request,response){
 });
 
 app.get('/userInfo/:botId/:userId/:type', function(request, response){
+    if(typeof request.session.botLogin === 'undefined') {
+        response.status(401).send(JSON.stringify({
+            statusCode: 401,
+            message: "Unauthorized"
+        }));
+        return;
+    }
     var userId = request.params.userId;
     var botId = request.params.botId;
     var type = request.params.type;
@@ -1589,6 +1639,13 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
 });
 
 app.post('/botSendGroupMessage', function(request,response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
     if(Object.keys(request.body).length !== 3 || typeof request.body.convoId !== 'string' || typeof request.body.botId !== 'string' || typeof request.body.text !== 'string' || request.body.text.length < 1){
         response.status(400).send(JSON.stringify({
             statusCode:400,
@@ -1656,6 +1713,13 @@ app.post('/botSendGroupMessage', function(request,response){
 });
 
 app.post('/botSendMessage', function(request, response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
     if(Object.keys(request.body).length !== 3 || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || typeof request.body.text !== 'string'){
         response.status(404).send(JSON.stringify({
             statusCode:404,
