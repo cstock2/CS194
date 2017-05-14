@@ -2023,6 +2023,74 @@ describe("Test Server APIs", function(){
                     });
                 });
             });
+            describe('/botListDetail', function(){
+                describe('failing cases', function(){
+                    describe('unauthorized access', function(){
+                        describe('Unauthorized access', function(){
+                            it('returns 401 error', function(done){
+                                request(app).get('/botListDetail').expect(401).end(function(err,res){
+                                    assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                    done();
+                                });
+                            });
+                        });
+                    });
+                    describe('error finding bots', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'find').yields({error: "error"}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.get('/botListDetail').expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding bots"}');
+                                done();
+                            });
+                        });
+                    });
+                });
+                describe('passing case', function(){
+                    var sandbox;
+                    var data = [];
+                    data.push({id: 1, name: "alpha",url:"uhoh", description:"a",basicPerm:true,emailPerm:false,locationPerm:false,birthdayPerm:false,allPerm:false});
+                    data.push({id: 2, name: "beta", description:"b",basicPerm:true,emailPerm:false,locationPerm:false,birthdayPerm:false,allPerm:false});
+                    data.push({id: 3, name: "gamma", description:"c",basicPerm:true,emailPerm:false,locationPerm:false,birthdayPerm:false,allPerm:false});
+                    data.push({id: 4, name: "delta", description:"d",basicPerm:true,emailPerm:false,locationPerm:false,birthdayPerm:false,allPerm:false});
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Bots, 'find').yields(null, data);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns correct number of bots', function(done){
+                        server.get('/botListDetail').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.botList.length, 4);
+                            done();
+                        });
+                    });
+                    it('returns correct order of bots', function(done){
+                        server.get('/botListDetail').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.botList[0].name, "alpha");
+                            assert.strictEqual(obj.botList[2].name, "delta");
+                            done();
+                        });
+                    });
+                    it('each bot has the correct number of fields', function(done){
+                        server.get('/botListDetail').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(Object.keys(obj.botList[0]).length, 8);
+                            assert.strictEqual(typeof obj.botList[0].url, 'undefined');
+                            done();
+                        });
+                    });
+                });
+            });
             describe('getBot', function(){
                 describe('failing cases', function(){
                     describe('unauthorized access', function(){

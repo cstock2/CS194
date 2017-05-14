@@ -89,6 +89,10 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
         $scope.gsc.makeError = true;
     };
 
+    $scope.permissionError = function(err){
+        console.log(err);
+    };
+
     $scope.gsc.makeGroup = function(){
         console.log($scope.gsc.newGroup);
         if($scope.gsc.newGroup.users.length < 2){
@@ -113,6 +117,31 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
             return
         }
         //NEED TO CONSIDER ADDING CURRENT BOT TO USER, SENDING GROUP JOIN ALERTS TO ALL OTHER GROUP MEMBERS
+        if($scope.gsc.botNew){
+            var permResource = $resource('/updatePermissions', {},
+                {
+                    'save': {
+                    method: 'POST',
+                        interceptor: {responseError: $scope.permissionError}
+                }
+            });
+            var thisBot = $scope.gsc.allBots.find(function checkBot(bot){
+                 return bot.id = $scope.gsc.newGroup.botId;
+            });
+            var botObj = {};
+            botObj.botId = thisBot.id;
+            botObj.basicPerm = thisBot.basicPerm;
+            botObj.emailPerm = thisBot.emailPerm;
+            botObj.birthdayPerm = thisBot.birthdayPerm;
+            botObj.locationPerm = thisBot.locationPerm;
+            botObj.allPerm = false;
+            if(botObj.basicPerm && botObj.emailPerm && botObj.birthdayPerm && botObj.locationPerm){
+                botObj.allPerm = true;
+            }
+            var data2 = permResource.save(JSON.stringify(botObj), function(err,returnObj){
+                console.log("Finished adding bot permissions");
+            });
+        }
         var resource = $resource('/makeGroup', {} ,
             {
                 'save': {
@@ -121,6 +150,7 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
                 }
             });
         var data = resource.save(JSON.stringify($scope.gsc.newGroup), function(returnObj, err){
+            console.log("Finished making group");
             if(returnObj !== null){
                 $scope.main.username = returnObj.name;
                 $scope.main.loggedIn = true;
@@ -148,7 +178,7 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
                 for(var idx2 in $scope.gsc.currBots){
                     $scope.gsc.currBots[idx2].selected = false;
                 }
-                var allBotResource = $resource('/botList');
+                var allBotResource = $resource('/botListDetail');
                 var allBotData = allBotResource.get(function(){
                     console.log(allBotData);
                     $scope.gsc.allBots = allBotData.botList;
@@ -159,9 +189,6 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
                         }
                     });
                     $scope.gsc.allBots = notCurrBots;
-                    for(var idx3 in $scope.gsc.allBots){
-                        $scope.gsc.allBots[idx3].selected = false;
-                    }
                 });
             });
         });

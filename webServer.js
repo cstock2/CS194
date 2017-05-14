@@ -347,6 +347,7 @@ app.post('/updatePermissions', function(request, response){
         }));
         return
     }
+    console.log(request.body);
     if(Object.keys(request.body).length !== 6 || (typeof request.body.botId !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
@@ -1288,35 +1289,72 @@ app.get('/botList', function(request, response){
                 statusCode:401,
                 message: "Unauthorized"
         }));
+        return
     }
-    else{
-        Bots.find(function(err, bots){
-            if(err){
-                response.status(404).send(JSON.stringify({
-                    statusCode:404,
-                    message:"Error finding bots"
-                }));
-            }
-            else{
-                var newBots = [];
-                for(var idx in bots){
-                    var currBot = bots[idx];
-                    var botObj = {};
-                    botObj.name = currBot.name;
-                    botObj.id = currBot.id;
-                    botObj.description = currBot.description;
-                    newBots.push(botObj);
-                }
-                newBots.sort(function(a, b){
-                    return a.name > b.name;
-                });
-                var returnObj = {};
-                //also want to sort these alphabetically
-                returnObj.botList = newBots;
-                response.send(JSON.stringify(returnObj));
-            }
+    Bots.find(function(err, bots){
+        if(err) {
+            response.status(404).send(JSON.stringify({
+                statusCode: 404,
+                message: "Error finding bots"
+            }));
+            return;
+        }
+        var newBots = [];
+        for(var idx in bots){
+            var currBot = bots[idx];
+            var botObj = {};
+            botObj.name = currBot.name;
+            botObj.id = currBot.id;
+            botObj.description = currBot.description;
+            newBots.push(botObj);
+        }
+        newBots.sort(function(a, b){
+            return a.name > b.name;
         });
+        var returnObj = {};
+        returnObj.botList = newBots;
+        response.send(JSON.stringify(returnObj));
+    });
+});
+
+app.get('/botListDetail', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message: "Unauthorized"
+        }));
+        return
     }
+    Bots.find(function(err, bots){
+        if(err) {
+            response.status(500).send(JSON.stringify({
+                statusCode: 500,
+                message: "Error finding bots"
+            }));
+            return;
+        }
+        var newBots = [];
+        for(var idx in bots){
+            var currBot = bots[idx];
+            var botObj = {};
+            botObj.name = currBot.name;
+            botObj.id = currBot.id;
+            botObj.description = currBot.description;
+            botObj.basicPerm = currBot.basicPerm;
+            botObj.emailPerm = currBot.emailPerm;
+            botObj.locationPerm = currBot.locationPerm;
+            botObj.birthdayPerm = currBot.birthdayPerm;
+            botObj.allPerm = currBot.allPerm;
+            newBots.push(botObj);
+        }
+        newBots.sort(function(a, b){
+            return a.name > b.name;
+        });
+        var returnObj = {};
+        returnObj.botList = newBots;
+        response.send(JSON.stringify(returnObj));
+    });
+
 });
 
 
