@@ -77,6 +77,7 @@ app.get('/admin/getSession', function(request,response){
 });
 
 app.post('/admin/registerBot', function(request, response){
+    console.log(request.body);
     if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean' || typeof request.body.username !== 'string' || typeof request.body.password !== 'string'){
         response.status(404).send(JSON.stringify({
             statusCode: 404,
@@ -260,7 +261,7 @@ app.post('/admin/register', function(request, response){
         }));
         return
     }
-    Users.findOne({email: newUser.email}, function(err, user){
+    Users.findOne({email: newUser.emailAddress}, function(err, user){
         if(err){
             response.status(404).send(JSON.stringify({
                 statusCode: 404,
@@ -281,7 +282,7 @@ app.post('/admin/register', function(request, response){
                     gender: newUser.gender,
                     lastName: newUser.lastName,
                     location: newUser.location,
-                    password: newUser.password,
+                    password: newUser.password1,
                     birthday: newUser.birthday,
                     email: newUser.emailAddress
                 }, function(err, userObj){

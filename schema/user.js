@@ -13,7 +13,7 @@ var UserSchema = new mongoose.Schema({
     location: String,
     password: {type: String, required: true},
     birthday: {type: Date, default: Date.now},
-    email: {type: String, required: true},
+    email: {type: String, required: true, unique: true},
     basicAuthBots: {type: Array, default: []}, //any bot that a user has contact with
     emailAuthBots: {type: Array, default: []}, //any bot that a user has given email authorization to
     birthdayAuthBots: {type: Array, default: []}, //any bot that a user has given birthday authorization to
