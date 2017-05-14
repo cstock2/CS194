@@ -7,6 +7,7 @@
 <body>
     <div class="nav-main">
         <div class="nav-button" ng-click="main.setLocation('/botExploration')">Explore Bots</div>
+        <div class="nav-button" ng-click="bnc.setLocation('newGroup')">Make a group</div>
         <div class="nav-button-right" ng-if="main.loggedIn" ng-click="bnc.setLocation('logout')">Log Out</div>
         <div class="nav-button-right" ng-if="main.loggedIn" ng-click="bnc.setLocation('profile')">{{main.username}}</div>
     </div>

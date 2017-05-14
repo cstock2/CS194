@@ -1081,7 +1081,7 @@ app.get('/currentBotList', function(request,response){
         for(var idx in bots){
             var currBot = bots[idx];
             if(typeof request.session.user.currentBots.find(function find(id){return currBot.id === id})!== 'undefined'){
-                currentBots.push({id: currBot.id, name: currBot.name});
+                currentBots.push({id: currBot.id, name: currBot.name, basicPerm: currBot.basicPerm, emailPerm: currBot.emailPerm, locationPerm: currBot.locationPerm, birthdayPerm: currBot.birthdayPerm, allPerm:currBot.allPerm});
             }
         }
         currentBots.sort(function(a,b){

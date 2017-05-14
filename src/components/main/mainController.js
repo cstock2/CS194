@@ -38,6 +38,10 @@ chatApp.config(['$routeProvider',
                 templateUrl: 'src/components/group-chat/groupChatTemplate.html',
                 controller: 'GroupChatController'
             }).
+            when('/groupStart',{
+                templateUrl: 'src/components/group-start/groupStartTemplate.html',
+                controller: 'GroupStartController'
+            }).
             otherwise({
                 redirectTo: '/login'
             });

@@ -21,7 +21,6 @@ chatApp.controller('BotExplorationController', ['$scope', '$location','$resource
                     }
                 }
                 $scope.bec.allBots = notCurrBots;
-                console.log($scope.bec.allBots);
             });
         });
     };

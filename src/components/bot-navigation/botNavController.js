@@ -13,6 +13,9 @@ chatApp.controller('BotNavController', ['$scope', '$resource', '$location', func
         else if(navPath === 'profile'){
             $location.path('/userDetail/' + $scope.main.userId);
         }
+        else if(navPath === 'newGroup'){
+            $location.path('/groupStart');
+        }
         else{
             $location.path('/' + navPath);
         }

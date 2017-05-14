@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="main-head">Start a new group!</div>
+    <div class="main-subhead">Pick some bots</div>
+    <div class="main-subhead2">Current Bots</div>
+    <div ng-repeat="x in gsc.currBots">
+        <div ng-if="!x.selected" class="main-link" ng-click="gsc.addCurrBot(x.id)">{{x.name}}</div>
+        <div ng-if="x.selected" class="main-link-selected" ng-click="gsc.addCurrBot(x.id)">{{x.name}}</div>
+    </div>
+    <div class="main-subhead2">Or new bots</div>
+    <div ng-repeat="x in gsc.allBots">
+        <div ng-if="!x.selected" class="main-link" ng-click="gsc.addNewBot(x.id)">{{x.name}}</div>
+        <div ng-if="x.selected" class="main-link-selected" ng-click="gsc.addNewBot(x.id)">{{x.name}}</div>
+        <div class="main-descrip">{{x.description}}</div>
+        <div ng-if="x.basicPerm"> <!--We may need to allow for other combinations here-->
+            <div class="main-descrip">Needs the following permissions</div>
+            <div class="main-descrip" ng-if="x.basicPerm">Basic Permissions</div>
+            <div class="main-descrip" ng-if="x.birthdayPerm">Birthday</div>
+            <div class="main-descrip" ng-if="x.locationPerm">Location</div>
+            <div class="main-descrip" ng-if="x.emailPerm">Email</div>
+        </div>
+    </div>
+    <div class="main-subhead">And pick some friends</div>
+    <div ng-repeat="x in gsc.friends">
+        <div ng-if="!x.selected" class="main-link" ng-click="gsc.addFriend(x.id)">{{x.firstName}} {{x.lastName}}</div>
+        <div ng-if="x.selected" class="main-link-selected" ng-click="gsc.addFriend(x.id)">{{x.firstName}} {{x.lastName}}</div>
+    </div>
+    <div class="main-subhead">Name your group</div>
+    <div class="lrc-unit1"><input type="text" ng-model="gsc.newGroup.name" class="add-addUnit"><label class="lrc-label">Enter group name</label></div>
+    <div class="main-error" ng-if="gsc.needUsers">Please add at least one other user</div>
+    <div class="main-error" ng-if="gsc.needBot">Please add a bot</div>
+    <div class="main-error" ng-if="gsc.needName">Please name the group</div>
+    <div class="main-error" ng-if="gsc.makeError">Error creating group</div>
+    <div class="main-subhead" ng-click="gsc.makeGroup()">Submit</div>
+</body>
+</html>
