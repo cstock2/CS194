@@ -5,34 +5,84 @@
     <title>Title</title>
 </head>
 <body>
-    <div class="main-title">Welcome</div>
+    <div class="main-title">Welcome to Chat.IO!</div>
     <div class="main-subhead">Login</div>
-    <div class="lrc-unit1"><input type="text" ng-model="lrc.user.username" class="add-addUnit" placeholder="something@example.com"><label class="lrc-label">Email address</label></div>
-    <div class="lrc-unit1"><input type="password" ng-model="lrc.user.password" class="add-addUnit"><label class="lrc-label">Password</label></div>
-    <div class="main-error" ng-if="lrc.userNameBad">Invalid username</div>
-    <div class="main-error" ng-if="lrc.passwordBad">Incorrect Password</div>
-    <div class="main-error" ng-if="lrc.databaseError">Internal Error</div>
-    <div ng-click="login()" class="main-link">Login</div>
+    <form name="loginForm" layout="row" layout-align="center center" class="lrc-link">
+        <md-input-container ng-style="main.inputStyle">
+            <label>Email Address</label>
+            <input name="emailAddress" ng-model="lrc.user.username" type="text" required>
+            <div style="color:maroon" role="alert">
+                <div ng-if="lrc.userNameBad">Invalid username</div>
+            </div>
+        </md-input-container>
+        <md-input-container ng-style="main.inputStyle">
+            <label>Password</label>
+            <input name="password" ng-model="lrc.user.password" type="password" required>
+            <div style="color:maroon" role="alert">
+                <div ng-if="lrc.passwordBad">Incorrect password</div>
+                <div ng-if="lrc.databaseError">Internal error</div>
+            </div>
+        </md-input-container>
+    </form>
+    <div layout="row" layout-align="center center">
+        <md-button ng-click="login()">Login</md-button>
+    </div>
 
     <div class="main-subhead">Register</div>
-    <div class="lrc-unit1"><input type="text" ng-model="lrc.newUser.firstName" class="add-addUnit"><label class="lrc-label">First Name</label></div>
-    <div class="lrc-unit1"><input type="text" ng-model="lrc.newUser.lastName" class="add-addUnit"><label class="lrc-label">Last Name</label></div>
-    <div class="lrc-unit1"><input type="text" ng-model="lrc.newUser.location" class="add-addUnit"><label class="lrc-label">Location</label></div>
-    <div class="lrc-unit1"><input type="text" ng-model="lrc.newUser.emailAddress" class="add-addUnit"><label class="lrc-label">Email Address</label></div>
-    <div class="lrc-unit1"><input type="text" ng-model="lrc.newUser.gender" class="add-addUnit"><label class="lrc-label">Gender</label></div>
-    <div class="lrc-unit1"><input type="date" ng-model="lrc.newUser.birthday" class="add-addUnit"><label class="lrc-label">Birthday</label></div>
-    <div class="lrc-unit1"><input type="password" ng-model="lrc.newUser.password1" class="add-addUnit"><label class="lrc-label">Password</label></div>
-    <div class="lrc-unit1"><input type="password" ng-model="lrc.newUser.password2" class="add-addUnit"><label class="lrc-label">Confirm Password</label></div>
-    <div class="main-error" ng-if="lrc.detailLack">Please fill in all fields</div>
-    <div class="main-error" ng-if="!lrc.passwordMatch">Passwords must match</div>
-    <div class="main-error" ng-if="!lrc.passwordLength">Passwords must be at least 8 characters</div>
-    <div class="main-error" ng-if="lrc.invalidUsername">Please enter a unique email address</div>
-    <div class="main-error" ng-if="lrc.otherError">Error, please try again</div>
-    <div ng-click="register()" class="main-link">Register</div>
+    <!--<div class="main-error" ng-if="lrc.otherError">Error, please try again</div>-->
+    <form name="registerForm">
+        <div layout="row" layout-align="center center" class="lrc-link">
+            <md-input-container ng-style="main.inputStyle" >
+                <label>First name</label>
+                <input name="firstName" ng-model="lrc.newUser.firstName" type="text" required>
+            </md-input-container>
+            <md-input-container>
+                <label>Last name</label>
+                <input name="lastName" ng-model="lrc.newUser.lastName" type="text" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Location</label>
+                <input name="location" ng-model="lrc.newUser.location" type="text" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Email Address</label>
+                <input name="email address" ng-model="lrc.newUser.emailAddress" type="text" required>
+                <div style="color:maroon" role="alert">
+                </div>
+            </md-input-container>
+            <div ng-if="lrc.invalidUsername">Please enter a unique email address</div>
+        </div>
+        <div layout="row" layout-align="center center" class="lrc-link">
+            <md-input-container ng-style="main.inputStyle">
+                <label>Gender</label>
+                <input name="gender" ng-model="lrc.newUser.gender" type="text" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Birthday</label>
+                <input name="birthday" ng-model="lrc.newUser.birthday" type="date" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Password</label>
+                <input name="password1" ng-model="lrc.newUser.password1" type="password" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Confirm password</label>
+                <input name="password2" ng-model="lrc.newUser.password2" type="password" required>
+                <div style="color:maroon" role="alert">
+                    <div ng-if="!lrc.passwordMatch">Passwords must match</div>
+                    <div ng-if="!lrc.passwordLength">Passwords must be at least 8 characters</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div style="color:maroon; text-align:center" role="alert" ng-if="lrc.detailLack"> Please fill in all fields</div>
+        <div layout="row" layout-align="center">
+            <md-button ng-click="register()">Register</md-button>
 
-
+        </div>
+    </form>
     <div class="main-head">Register a bot</div>
-    <div ng-click="main.setLocation('/registerBot')" class="main-link">Register</div>
-
+    <div layout="row" layout-align="center">
+        <md-button ng-click="main.setLocation('/registerBot')" >Register</md-button>
+    </div>
 </body>
 </html>

@@ -6,3 +6,25 @@
     padding: 5px;
     margin:auto;
 }
+
+.md-input-has-value.bigClass > input {
+    font-size: 30px;
+    margin-top:5px;
+    margin-bottom:5px;
+}
+
+.md-input-container{
+    margin-top:5px;
+    margin-bottom:5px;
+}
+
+.lrc-link{
+    text-align:center;
+    font-size:16px;
+    margin: 5px;
+    padding: 10px;
+    box-shadow: 0 0 3px #ccc;
+    width:85%;
+    margin-left: auto;
+    margin-right: auto;
+}

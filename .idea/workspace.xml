@@ -4,12 +4,9 @@
     <list default="true" id="58a778a6-0454-4546-9651-843f674aa702" name="Default" comment="">
       <change type="DELETED" beforePath="$PROJECT_DIR$/npm-debug.log" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chatMain.html" afterPath="$PROJECT_DIR$/chatMain.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/components/bot-navigation/botNavController.js" afterPath="$PROJECT_DIR$/src/components/bot-navigation/botNavController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/components/bot-navigation/botNavTemplate.html" afterPath="$PROJECT_DIR$/src/components/bot-navigation/botNavTemplate.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/components/chat/chatController.js" afterPath="$PROJECT_DIR$/src/components/chat/chatController.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/components/login-register/login-register.css" afterPath="$PROJECT_DIR$/src/components/login-register/login-register.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html" afterPath="$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/components/main/mainController.js" afterPath="$PROJECT_DIR$/src/components/main/mainController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/webServer.js" afterPath="$PROJECT_DIR$/webServer.js" />
     </list>
     <ignored path="untitled1.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -39,17 +36,43 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="loginRegisterTemplate.html" pinned="false" current-in-tab="false">
+      <file leaf-file-name="loginRegisterTemplate.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="33" column="47" lean-forward="false" selection-start-line="33" selection-start-column="47" selection-end-line="33" selection-end-column="47" />
+            <state relative-caret-position="1245">
+              <caret line="83" column="4" lean-forward="false" selection-start-line="83" selection-start-column="4" selection-end-line="83" selection-end-column="4" />
+              <folding>
+                <element signature="n#style#0;n#div#0;n#md-input-container#0;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#div#0;n#md-input-container#1;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#div#0;n#md-input-container#3;n#div#0;n#form#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#div#0;n#md-input-container#3;n#div#1;n#form#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#div#2;n#form#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="login-register.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/components/login-register/login-register.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="360">
+              <caret line="24" column="15" lean-forward="false" selection-start-line="24" selection-start-column="15" selection-end-line="24" selection-end-column="15" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="botNavController.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="loginRegisterController.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/components/login-register/loginRegisterController.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="198">
+              <caret line="113" column="0" lean-forward="false" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="botNavController.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/components/bot-navigation/botNavController.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="365">
@@ -62,21 +85,11 @@
       <file leaf-file-name="mainController.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/components/main/mainController.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="81" column="32" lean-forward="false" selection-start-line="81" selection-start-column="32" selection-end-line="81" selection-end-column="32" />
+            <state relative-caret-position="19">
+              <caret line="54" column="20" lean-forward="false" selection-start-line="54" selection-start-column="20" selection-end-line="54" selection-end-column="20" />
               <folding>
                 <element signature="e#0#45#0" expanded="false" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="serverTest.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/serverTest.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="490">
-              <caret line="971" column="96" lean-forward="false" selection-start-line="971" selection-start-column="96" selection-end-line="971" selection-end-column="96" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -99,6 +112,7 @@
       <find>sendMessage</find>
       <find>Messages.create</find>
       <find>admin</find>
+      <find>register</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -110,7 +124,6 @@
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/src/main/mainController.js" />
         <option value="$PROJECT_DIR$/src/components/login-register/loginRegister.js" />
-        <option value="$PROJECT_DIR$/src/components/login-register/login-register.css" />
         <option value="$PROJECT_DIR$/src/components/user-detail/userDetailTemplate.js" />
         <option value="$PROJECT_DIR$/echoBot.js" />
         <option value="$PROJECT_DIR$/src/components/chat/chat.css" />
@@ -118,7 +131,6 @@
         <option value="$PROJECT_DIR$/backwardsBot.js" />
         <option value="$PROJECT_DIR$/backwardsServer.js" />
         <option value="$PROJECT_DIR$/src/components/bot-navigation/botNav.css" />
-        <option value="$PROJECT_DIR$/src/components/login-register/loginRegisterController.js" />
         <option value="$PROJECT_DIR$/src/components/bot-start/botStartTemplate.html" />
         <option value="$PROJECT_DIR$/src/components/bot-start/botStartController.js" />
         <option value="$PROJECT_DIR$/.gitignore" />
@@ -134,7 +146,6 @@
         <option value="$PROJECT_DIR$/src/components/group-start/groupStartTemplate.html" />
         <option value="$PROJECT_DIR$/src/components/group-start/groupStartController.js" />
         <option value="$PROJECT_DIR$/schema/bot.js" />
-        <option value="$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html" />
         <option value="$PROJECT_DIR$/src/components/bot-register/botRegisterTemplate.html" />
         <option value="$PROJECT_DIR$/schema/user.js" />
         <option value="$PROJECT_DIR$/src/components/bot-register/botRegisterController.js" />
@@ -149,8 +160,11 @@
         <option value="$PROJECT_DIR$/chatMain.html" />
         <option value="$PROJECT_DIR$/src/components/bot-navigation/botNavTemplate.html" />
         <option value="$PROJECT_DIR$/webServer.js" />
-        <option value="$PROJECT_DIR$/src/components/main/mainController.js" />
         <option value="$PROJECT_DIR$/src/components/bot-navigation/botNavController.js" />
+        <option value="$PROJECT_DIR$/src/components/login-register/loginRegisterController.js" />
+        <option value="$PROJECT_DIR$/src/components/main/mainController.js" />
+        <option value="$PROJECT_DIR$/src/components/login-register/login-register.css" />
+        <option value="$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html" />
       </list>
     </option>
   </component>
@@ -583,12 +597,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1491697842761</updated>
-      <workItem from="1494821680280" duration="4867000" />
+      <workItem from="1494821680280" duration="8315000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="4867000" />
+    <option name="totallyTimeSpent" value="8315000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="21" y="32" width="1225" height="687" extended-state="0" />
@@ -719,13 +733,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/login-register/login-register.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="7" column="1" lean-forward="false" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/components/chat/chat.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -810,13 +817,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/main/main.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="86" column="30" lean-forward="false" selection-start-line="86" selection-start-column="30" selection-end-line="86" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/components/group-start/groupStartTemplate.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -849,13 +849,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="11" column="79" lean-forward="false" selection-start-line="11" selection-start-column="79" selection-end-line="11" selection-end-column="79" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/login-register/loginRegisterController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="94" column="8" lean-forward="false" selection-start-line="94" selection-start-column="8" selection-end-line="100" selection-end-column="15" />
         </state>
       </provider>
     </entry>
@@ -954,14 +947,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="33" column="47" lean-forward="false" selection-start-line="33" selection-start-column="47" selection-end-line="33" selection-end-column="47" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/chatMain.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="397">
@@ -986,16 +971,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/main/mainController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="81" column="32" lean-forward="false" selection-start-line="81" selection-start-column="32" selection-end-line="81" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#45#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/components/chat/chatController.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
@@ -1009,6 +984,54 @@
         <state relative-caret-position="365">
           <caret line="27" column="30" lean-forward="false" selection-start-line="27" selection-start-column="30" selection-end-line="27" selection-end-column="30" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/components/login-register/loginRegisterController.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="113" column="0" lean-forward="false" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/components/main/mainController.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="19">
+          <caret line="54" column="20" lean-forward="false" selection-start-line="54" selection-start-column="20" selection-end-line="54" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#45#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/components/main/main.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="183">
+          <caret line="66" column="0" lean-forward="false" selection-start-line="66" selection-start-column="0" selection-end-line="75" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/components/login-register/login-register.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" column="15" lean-forward="false" selection-start-line="24" selection-start-column="15" selection-end-line="24" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/components/login-register/loginRegisterTemplate.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1245">
+          <caret line="83" column="4" lean-forward="false" selection-start-line="83" selection-start-column="4" selection-end-line="83" selection-end-column="4" />
+          <folding>
+            <element signature="n#style#0;n#div#0;n#md-input-container#0;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#md-input-container#1;n#form#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#md-input-container#3;n#div#0;n#form#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#md-input-container#3;n#div#1;n#form#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#2;n#form#1;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

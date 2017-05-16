@@ -56,6 +56,9 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     $scope.main.days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     $scope.main.months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+    $scope.main.margin = '5px';
+    $scope.main.inputStyle = {'margin-top': $scope.main.margin, 'margin-bottom': $scope.main.margin, 'margin-right': $scope.main.margin, 'margin-left':$scope.main.margin};
+
     $scope.main.beginPage = function(){
         var sessionResource = $resource('/admin/getSession');
         var sessionData = sessionResource.get(function(){
