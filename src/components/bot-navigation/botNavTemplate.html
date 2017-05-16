@@ -5,12 +5,6 @@
     <title>Title</title>
 </head>
 <body>
-    <!--<md-nav-bar>-->
-        <!--<md-nav-item ng-click="main.setLocation('/botExploration')">Explore Bots</md-nav-item>-->
-        <!--<md-nav-item ng-click="bnc.setLocation('newGroup')">Make a group</md-nav-item>-->
-        <!--<md-nav-item ng-if="main.loggedIn" ng-click="bnc.setLocation('logout')">Log Out</md-nav-item>-->
-        <!--<md-nav-item ng-if="main.loggedIn" ng-click="bnc.setLocation('profile')">{{main.username}}</md-nav-item>-->
-    <!--</md-nav-bar>-->
     <md-nav-bar md-selected-nav-item="currentNavItem">
         <md-nav-item ng-if="main.loggedIn" md-nav-click="main.setLocation('/botExploration')" name="Explore Bots">Explore Bots</md-nav-item>
         <md-nav-item ng-if="main.loggedIn" md-nav-click="bnc.setLocation('newGroup')" name="Make a Group">Make a Group</md-nav-item>

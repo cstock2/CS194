@@ -6,23 +6,86 @@
 </head>
 <body>
     <div class="main-head">Register a bot</div>
-    <div class="lrc-unit1"><input type="text" ng-model="brc.newBot.name" class="add-addUnit"><label class="lrc-label">Bot Name</label></div>
-    <div class="lrc-unit1"><input type="text" ng-model="brc.newBot.url" class="add-addUnit"><label class="lrc-label">Bot Url</label></div>
-    <div class="lrc-unit1"><input type="text" ng-model="brc.newBot.username" class="add-addUnit"><label class="lrc-label">Bot Username</label></div>
-    <div class="lrc-unit1"><input type="password" ng-model="brc.newBot.password" class="add-addUnit"><label class="lrc-label">Password</label></div>
-    <div class="lrc-unit1"><input type="password" ng-model="brc.newBot.password2" class="add-addUnit"><label class="lrc-label">Re-enter Password</label></div>
-    <div class="lrc-unit1"><textarea rows="5" columns="40" ng-model="brc.newBot.description"></textarea><label class="lrc-label">Bot Description</label></div>
-    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.basicPerm" class="add-addUnit"><label class="lrc-label">Basic Permissions</label></div>
-    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.emailPerm" class="add-addUnit"><label class="lrc-label">Email Permissions</label></div>
-    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.birthdayPerm" class="add-addUnit"><label class="lrc-label">Birthday Permissions</label></div>
-    <div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.locationPerm" class="add-addUnit"><label class="lrc-label">Location Permissions</label></div>
+    <!--<div class="lrc-unit1"><input type="text" ng-model="brc.newBot.name" class="add-addUnit"><label class="lrc-label">Bot Name</label></div>-->
+    <!--<div class="lrc-unit1"><input type="text" ng-model="brc.newBot.url" class="add-addUnit"><label class="lrc-label">Bot Url</label></div>-->
+    <!--<div class="lrc-unit1"><input type="text" ng-model="brc.newBot.username" class="add-addUnit"><label class="lrc-label">Bot Username</label></div>-->
+    <!--<div class="lrc-unit1"><input type="password" ng-model="brc.newBot.password" class="add-addUnit"><label class="lrc-label">Password</label></div>-->
+    <!--<div class="lrc-unit1"><input type="password" ng-model="brc.newBot.password2" class="add-addUnit"><label class="lrc-label">Re-enter Password</label></div>-->
+    <!--<div class="lrc-unit1"><textarea rows="5" columns="40" ng-model="brc.newBot.description"></textarea><label class="lrc-label">Bot Description</label></div>-->
+    <!--<div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.basicPerm" class="add-addUnit"><label class="lrc-label">Basic Permissions</label></div>-->
+    <!--<div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.emailPerm" class="add-addUnit"><label class="lrc-label">Email Permissions</label></div>-->
+    <!--<div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.birthdayPerm" class="add-addUnit"><label class="lrc-label">Birthday Permissions</label></div>-->
+    <!--<div class="lrc-unit1"><input type="checkbox" ng-model="brc.newBot.locationPerm" class="add-addUnit"><label class="lrc-label">Location Permissions</label></div>-->
 
-    <div class="main-error" ng-if="brc.botPasswordBad">Passwords do not match</div>
-    <div class="main-error" ng-if="brc.badBotName">Bot name already exists</div>
-    <div class="main-error" ng-if="brc.badBotUrl">Bot url is invalid</div>
-    <div class="main-error" ng-if="brc.botDetailLack">Please fill in all fields</div>
-    <div class="main-error" ng-if="brc.botInternalError">Internal Server Error</div>
-    <div class="main-subhead" ng-if="brc.successBotRegister">Successfully registered bot. Log in to chat</div>
-    <div ng-click="registerBot()" class="main-link">Register</div>
+    <form name="botRegisterForm">
+        <div layout="row" layout-align="center center">
+            <md-input-container ng-style="main.inputStyle">
+                <label>Bot name</label>
+                <input name="botName" ng-model="brc.newBot.name" type="text" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Bot URL</label>
+                <input name="botUrl" ng-model="brc.newBot.url" type="text" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Bot Username</label>
+                <input name="botUsername" ng-model="brc.newBot.username" type="text" required>
+            </md-input-container>
+            <md-input-container  ng-style="main.inputStyle">
+                <label>Password</label>
+                <input name="botPassword" ng-model="brc.newBot.password" type="password" required>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <label>Confirm Password</label>
+                <input name="botPassword2" ng-model="brc.newBot.password2" type="password" required>
+            </md-input-container>
+        </div>
+        <div layout="row" layout-align="center center">
+            <div style="color:maroon" role="alert">
+                <div ng-if="brc.badBotUrl">Invalid url</div>
+            </div>
+            <div style="color:maroon" role="alert">
+                <div ng-if="brc.badBotName">Invalid username</div>
+            </div>
+            <div style="color:maroon" role="alert">
+                <div ng-if="brc.botPasswordBad">Passwords do not match</div>
+            </div>
+        </div>
+        <div layout="row" layout-align="center center">
+            <md-input-container ng-style="main.inputStyle">
+                <label>Bot Description</label>
+                <textarea rows="5" columns="40" ng-model="brc.newBot.description"></textarea>
+            </md-input-container>
+        </div>
+        <div layout="row" layout-align="center center">
+            <md-input-container ng-style="main.inputStyle">
+                <md-checkbox ng-model="brc.newBot.basicPerm" ng-checked="false">Basic Permissions</md-checkbox>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <md-checkbox ng-model="brc.newBot.emailPerm" ng-checked="false">Email Permissions</md-checkbox>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <md-checkbox ng-model="brc.newBot.locationPerm" ng-checked="false">Location Permissions</md-checkbox>
+            </md-input-container>
+            <md-input-container ng-style="main.inputStyle">
+                <md-checkbox ng-model="brc.newBot.birthdayPerm" ng-checked="false">Birthday Permissions</md-checkbox>
+            </md-input-container>
+        </div>
+        <div layout="row" layout-align="center center">
+            <div style="color:maroon" role="alert">
+                <div ng-if="brc.detailLack">Please fill in all fields</div>
+            </div>
+        </div>
+    </form>
+    <div layout="row" layout-align="center center">
+        <md-button ng-click="registerBot()">Register</md-button>
+    </div>
+    <!--<div class="main-error" ng-if="brc.botPasswordBad">Passwords do not match</div>-->
+    <!--<div class="main-error" ng-if="brc.badBotName">Bot name already exists</div>-->
+    <!--<div class="main-error" ng-if="brc.badBotUrl">Bot url is invalid</div>-->
+    <!--<div class="main-error" ng-if="brc.botDetailLack">Please fill in all fields</div>-->
+    <!--<div class="main-error" ng-if="brc.botInternalError">Internal Server Error</div>-->
+    <!--<div class="main-subhead" ng-if="brc.successBotRegister">Successfully registered bot. Log in to chat</div>-->
+    <!--<div ng-click="registerBot()" class="main-link">Register</div>-->
 </body>
 </html>
