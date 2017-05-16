@@ -2,12 +2,16 @@
  * Created by CodyWStocker on 4/8/17.
  */
 
-chatApp.controller('BotNavController', ['$scope', '$resource', '$location', function($scope, $resource, $location){
+chatApp.controller('BotNavController', ['$scope', '$resource', '$location', '$rootScope', function($scope, $resource, $location,$rootScope){
     $scope.bnc = {};
 
     $scope.bnc.setLocation = function(navPath){
         if(navPath === 'logout'){
             $scope.main.loggedIn = false;
+            $scope.main.userId = "";
+            console.log($scope.main);
+            // $scope.$apply();
+            // $rootScope.$broadcast('logged out');
             $location.path('/');
         }
         else if(navPath === 'profile'){
@@ -20,6 +24,12 @@ chatApp.controller('BotNavController', ['$scope', '$resource', '$location', func
             $location.path('/' + navPath);
         }
     };
+
+    $rootScope.$on('logged out', function(){
+        console.log('logout applied');
+        // $scope.$apply();
+    });
+
 
     $scope.bnc.getChat = function(botId){
         var resource = $resource('/isCurrentBot/:botId', {botId:'@botId'});

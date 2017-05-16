@@ -2,9 +2,11 @@
  * Created by CodyWStocker on 4/9/17.
  */
 
-chatApp.controller('ChatController', ['$scope', '$resource','$routeParams', function($scope, $resource, $routeParams){
+chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$rootScope', function($scope, $resource, $routeParams,$rootScope){
     $scope.cc = {};
     $scope.cc.myMessage = "";
+    // $scope.main.userId = "BAD";
+    // $rootScope.$broadcast('logged out');
     $scope.cc.isBot = false;
     $scope.cc.isNotBot = false;
 

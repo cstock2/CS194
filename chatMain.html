@@ -32,12 +32,16 @@
 </head>
 
 <body layout="column">
-<div class="main-nav">
-    <div ng-if="main.loggedIn">
-        <div ng-include = "'src/components/bot-navigation/botNavTemplate.html'" ng-controller="BotNavController"></div>
-    </div>
-    <!--<div ng-include="'src/components/navigation/navigationTemplate.html'" ng-controller="NavigationController"></div>-->
+<div ng-if="main.loggedIn">
+    <!--<md-nav-bar md-selected-nav-item="currentNavItem">-->
+        <!--<md-nav-item ng-if="main.loggedIn" md-nav-click="main.setLocation('/botExploration')" name="Explore Bots">Explore Bots</md-nav-item>-->
+        <!--<md-nav-item ng-if="main.loggedIn" md-nav-click="main.setLocation('newGroup')" name="Make a Group">Make a Group</md-nav-item>-->
+        <!--<md-nav-item ng-if="main.loggedIn" md-nav-click="main.setLocation('logout')" name="Log out">Log Out</md-nav-item>-->
+        <!--<md-nav-item ng-if="main.loggedIn" md-nav-click="main.setLocation('profile')" name="Your Profile">Your Profile</md-nav-item>-->
+    <!--</md-nav-bar>-->
+    <div ng-include = "'src/components/bot-navigation/botNavTemplate.html'" ng-controller="BotNavController"></div>
 </div>
+    <!--<div ng-include="'src/components/navigation/navigationTemplate.html'" ng-controller="NavigationController"></div>-->
 <div ng-view></div>
 
 </body>

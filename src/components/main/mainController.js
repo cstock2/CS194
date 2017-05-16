@@ -68,9 +68,44 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
         });
     };
 
+    $scope.main.logout = function() {
+        $scope.main.hasLoginAttempt = false;
+        //console.log("In logout");
+        var resource = $resource('/admin/logout');
+        resource.get({}, function () {
+            console.log("Here for whatever reason");
+        }, function errorHandling(err) {
+            console.log("Got an error");
+        });
+        $rootScope.$broadcast("logged out");
+        $scope.main.loggedIn = "";
+        $scope.main.userId = "";
+        //$scope.$apply();
+        $location.path("/login");
+    };
+
     $scope.main.setLocation = function(arg){
-        $scope.main.botRegistering = true;
-        $location.path(arg);
+        if(arg === 'logout'){
+            $scope.main.loggedIn = false;
+            $scope.main.userId = "";
+            console.log($scope.main);
+            // $scope.$apply();
+            // $rootScope.$broadcast('logged out');
+            $location.path('/');
+        }
+        else if(arg === 'profile'){
+            $location.path('/userDetail/' + $scope.main.userId);
+        }
+        else if(arg === 'newGroup'){
+            $location.path('/groupStart');
+        }
+        else{
+            $scope.main.botRegistering = true; //need to determine why this is here
+            $location.path(arg);
+        }
+        //$location.path(arg);
+        console.log("Got here");
+        $scope.$apply();
     };
 
     //This method ensures that if you are no longer logged in, you do not get to access other people's information
@@ -95,7 +130,14 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
                 }
             }
         });
+    });
 
+    $rootScope.$on('logged out', function(event,next){
+        console.log("Logging out");
+        $scope.main.userId = "";
+        $scope.main.loggedIn = false;
+        console.log($scope.main);
+        // $rootScope.$broadcast('apply logout');
     });
     //$scope.main.beginPage();
 }]);

@@ -76,6 +76,31 @@ app.get('/admin/getSession', function(request,response){
     }
 });
 
+//has not been unit tested
+app.get('/admin/logout', function(request,response){
+    if(request.session.user === null){
+        console.log("No user logged in");
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"No user logged in"
+        }));
+        return;
+    }
+    request.session.destroy(function(err){
+        if(err){
+            console.log("err", err);
+            // console.log("Logged out");
+            response.status(401).send(JSON.stringify({
+                statusCode:401,
+                message:"Error logging out"
+            }));
+        }
+        response.send(JSON.stringify({
+            loggedOut:true
+        }));
+    });
+});
+
 app.post('/admin/registerBot', function(request, response){
     if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean' || typeof request.body.username !== 'string' || typeof request.body.password !== 'string'){
         response.status(404).send(JSON.stringify({
