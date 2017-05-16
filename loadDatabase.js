@@ -121,7 +121,9 @@ Promise.all(removePromises).then(function(){
                             to: to,
                             from: from,
                             dateTime: message.dateTime,
-                            text: message.text
+                            type: message.type,
+                            text: message.text,
+                            options: message.options
                         }, function(err, messObj){
                             if(err){
                                 console.log("Error creating message: ", err);
@@ -164,7 +166,9 @@ Promise.all(removePromises).then(function(){
                                     id: multiMessage.id,
                                     convoId: idToId[multiMessage.convoId],
                                     from: idToId[multiMessage.from],
-                                    text: multiMessage.text
+                                    text: multiMessage.text,
+                                    type: multiMessage.type,
+                                    options: multiMessage.options
                                 }, function(err, multiObj){
                                     if(err){
                                         console.log("Error making group message: ", err);

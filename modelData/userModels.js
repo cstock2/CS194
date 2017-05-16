@@ -119,63 +119,72 @@ function getData(){
         to: "10",
         from: "1",
         dateTime: new Date("2016-08-01 12:00 PDT"),
-        text: "Hello"
+        text: "Hello",
+        type: 'text'
     });
     messages.push({
         id: "2",
         to: "1",
         from: "10",
         dateTime: new Date("2016-08-01 12:01 PDT"),
-        text: "Hello"
+        text: "Hello",
+        type: 'text'
     });
     messages.push({
         id: "3",
         to: "10",
         from: "1",
         dateTime: new Date("2016-08-01 12:02 PDT"),
-        text: "did i ever tell you the tragedy of darth plagueis the wise?"
+        text: "did i ever tell you the tragedy of darth plagueis the wise?",
+        type: 'text'
     });
     messages.push({
         id: "4",
         to: "1",
         from: "10",
         dateTime: new Date("2016-08-01 12:03 PDT"),
-        text: "did i ever tell you the tragedy of darth plagueis the wise?"
+        text: "did i ever tell you the tragedy of darth plagueis the wise?",
+        type: 'text'
     });
     messages.push({
         id: "5",
         to: "10",
         from: "1",
         dateTime: new Date("2016-08-01 12:04 PDT"),
-        text: "stop copying me"
+        text: "stop copying me",
+        type: 'text'
     });
     messages.push({
         id: "6",
         to: "1",
         from: "10",
         dateTime: new Date("2016-08-01 12:05 PDT"),
-        text: "stop copying me"
+        text: "stop copying me",
+        type: 'text'
     });
     messages.push({
         id: "7",
         to: "6",
         from: "1",
         dateTime: new Date("2016-10-01 12:00 PDT"),
-        text: "Hello"
+        text: "Hello",
+        type: 'text'
     });
     messages.push({
         id: "8",
         to: "6",
         from: "1",
         dateTime: new Date("2016-10-01 12:01 PDT"),
-        text: "How's the work going?"
+        text: "How's the work going?",
+        type: 'text'
     });
     messages.push({
         id: "9",
         to: "1",
         from: "6",
         dateTime: new Date("2016-10-01 12:02 PDT"),
-        text: "Pretty good"
+        text: "Pretty good",
+        type: 'text'
     });
 
     var groups = [];
@@ -198,42 +207,48 @@ function getData(){
         convoId: "20",
         from: "1",
         text: "Hello",
-        dateTime: new Date("2017-05-01 1:00 PDT")
+        dateTime: new Date("2017-05-01 1:00 PDT"),
+        type: 'text'
     });
     multiMessages.push({
         id: "31",
         convoId: "20",
         from: "10",
         text: "Hello",
-        dateTime: new Date("2017-05-01 1:00:01 PDT")
+        dateTime: new Date("2017-05-01 1:00:01 PDT"),
+        type: 'text'
     });
     multiMessages.push({
         id: "32",
         convoId: "20",
         from: "2",
         text: "Wow, speedy response",
-        dateTime: new Date("2017-05-01 1:05 PDT")
+        dateTime: new Date("2017-05-01 1:05 PDT"),
+        type: 'text'
     });
     multiMessages.push({
         id: "33",
         convoId: "20",
         from: "10",
         text: "Wow, speedy response",
-        dateTime: new Date("2017-05-01 1:05:01 PDT")
+        dateTime: new Date("2017-05-01 1:05:01 PDT"),
+        type: 'text'
     });
     multiMessages.push({
         id: "35",
         convoId: "21",
         from: "5",
         text: "Welcome to the echo chamber",
-        dateTime: new Date("2017-04-01 3:00 PDT")
+        dateTime: new Date("2017-04-01 3:00 PDT"),
+        type: 'text'
     });
     multiMessages.push({
         id: "36",
         convoId: "21",
         from: "10",
         text: "Welcome to the echo chamber",
-        dateTime: new Date("2017-04-01 3:01 PDT")
+        dateTime: new Date("2017-04-01 3:01 PDT"),
+        type: 'text'
     });
 
 

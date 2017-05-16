@@ -64,7 +64,7 @@ app.get('/admin/getSession', function(request,response){
         response.send(JSON.stringify({
             isSession: false
         }));
-        return
+        return;
     }
     else{
         response.send(JSON.stringify({
@@ -77,20 +77,19 @@ app.get('/admin/getSession', function(request,response){
 });
 
 app.post('/admin/registerBot', function(request, response){
-    console.log(request.body);
     if(typeof request.body === 'undefined' || typeof request.body.url !== 'string' || typeof request.body.name !== 'string' || typeof request.body.description !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean' || typeof request.body.username !== 'string' || typeof request.body.password !== 'string'){
         response.status(404).send(JSON.stringify({
             statusCode: 404,
             message: "Arguments not provided"
         }));
-        return
+        return;
     }
     if(request.body.allPerm && (!request.body.basicPerm || !request.body.emailPerm || !request.body.locationPerm || !request.body.birthdayPerm)){
         response.status(404).send(JSON.stringify({
             statusCode: 404,
             message: "Invalid arguments"
         }));
-        return
+        return;
     }
     var botName = request.body.name;
     var botUrl = request.body.url;
@@ -100,14 +99,14 @@ app.post('/admin/registerBot', function(request, response){
                 statusCode: 404,
                 message: "Error in bot database"
             }));
-            return
+            return;
         }
         if(botObj !== null) { //check if the bot url is already in system
             response.status(401).send(JSON.stringify({
                 statusCode: 401,
                 message: "Cannot create bot" //we could have more explicit messages, but that would tell the user that the url already exists...bad if a hacker can take a bot down
             }));
-            return
+            return;
         }
         Bots.findOne({username: request.body.username}, function(err, botObj2){
             if(err){
@@ -115,14 +114,14 @@ app.post('/admin/registerBot', function(request, response){
                     statusCode: 404,
                     message: "Error in bot database"
                 }));
-                return
+                return;
             }
             if(botObj2 !== null){//check if bot name is already in system
                 response.status(401).send(JSON.stringify({
                     statusCode: 401,
                     message: "Cannot create bot" //same as for the url case
                 }));
-                return
+                return;
             }
             var options = {
                 url: botUrl,
@@ -134,14 +133,14 @@ app.post('/admin/registerBot', function(request, response){
                         statusCode: 404,
                         message: "Error in request.get"
                     }));
-                    return
+                    return;
                 }
                 if(typeof res === 'undefined' || typeof body === 'undefined'){
                     response.status(404).send(JSON.stringify({
                         statusCode: 404,
                         message: "Error contacting bot server"
                     }));
-                    return
+                    return;
                 }
                 Bots.create({
                     id: "placeholder",
@@ -161,7 +160,7 @@ app.post('/admin/registerBot', function(request, response){
                             statusCode: 404,
                             message: "Error in bot database"
                         }));
-                        return
+                        return;
                     }
                         botObj.id = botObj._id;
                         botObj.save();
@@ -216,7 +215,7 @@ app.post('/admin/botLogin', function(request, response){
             statusCode:400,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Bots.findOne({username: request.body.username}, function(err, botObj){
         if(err){
@@ -224,24 +223,24 @@ app.post('/admin/botLogin', function(request, response){
                 statusCode:500,
                 message: "Error finding bot"
             }));
-            return
+            return;
         }
         else if(botObj === null){
             response.status(401).send(JSON.stringify({
                 statusCode:401,
                 message: "Invalid username or password"
             }));
-            return
+            return;
         }
         else if(botObj.password !== request.body.password){
             response.status(401).send(JSON.stringify({
                 statusCode:401,
                 message: "Invalid username or password"
             }));
-            return
+            return;
         }
         request.session.botLogin = botObj;
-        response.send(JSON.stringify({id: botObj.id}))
+        response.send(JSON.stringify({id: botObj.id}));
     });
 });
 
@@ -252,58 +251,55 @@ app.post('/admin/register', function(request, response){
             statusCode: 404,
             message: "Missing some fields"
         }));
-        return
+        return;
     }
     if(typeof newUser.firstName !== 'string' || typeof newUser.lastName !== 'string' || typeof newUser.location !== 'string' || typeof newUser.emailAddress !== 'string' || typeof newUser.gender !== 'string' || typeof newUser.password1 !== 'string' || typeof newUser.birthday !== 'string'){
         response.status(404).send(JSON.stringify({
             statusCode:404,
             message:"Fields are not of correct type"
         }));
-        return
+        return;
     }
     Users.findOne({email: newUser.emailAddress}, function(err, user){
-        if(err){
+        if(err) {
             response.status(404).send(JSON.stringify({
                 statusCode: 404,
                 message: "Error checking Users"
             }));
+            return;
         }
-        else{
-            if(user !== null){
+        if(user !== null){
+            response.status(404).send(JSON.stringify({
+                statusCode: 404,
+                message: "User exists"
+            }));
+            return;
+        }
+        Users.create({
+            id: "placeholder",
+            firstName: newUser.firstName,
+            gender: newUser.gender,
+            lastName: newUser.lastName,
+            location: newUser.location,
+            password: newUser.password1,
+            birthday: newUser.birthday,
+            email: newUser.emailAddress
+        }, function(err, userObj){
+            if(err){
                 response.status(404).send(JSON.stringify({
                     statusCode: 404,
-                    message: "User exists"
+                    message: "Error creating User"
                 }));
+                return;
             }
-            else{
-                Users.create({
-                    id: "placeholder",
-                    firstName: newUser.firstName,
-                    gender: newUser.gender,
-                    lastName: newUser.lastName,
-                    location: newUser.location,
-                    password: newUser.password1,
-                    birthday: newUser.birthday,
-                    email: newUser.emailAddress
-                }, function(err, userObj){
-                    if(err){
-                        response.status(404).send(JSON.stringify({
-                            statusCode: 404,
-                            message: "Error creating User"
-                        }));
-                    }
-                    else{
-                        userObj.id = userObj._id;
-                        userObj.save();
-                        request.session.user = userObj;
-                        var returnObj = {};
-                        returnObj.username = userObj.firstName + " " + userObj.lastName;
-                        returnObj.id = userObj._id;
-                        response.send(JSON.stringify(returnObj));
-                    }
-                });
-            }
-        }
+            userObj.id = userObj._id;
+            userObj.save();
+            request.session.user = userObj;
+            var returnObj = {};
+            returnObj.username = userObj.firstName + " " + userObj.lastName;
+            returnObj.id = userObj._id;
+            response.send(JSON.stringify(returnObj));
+        });
     });
 });
 
@@ -315,14 +311,14 @@ app.post('/sendUserUserMessage', function(request, response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     if(Object.keys(request.body).length !== 2 || (typeof request.body.userTo !== 'string' || typeof request.body.text !== 'string')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Users.findOne({_id: request.session.user.id}, function(err, user1){
         if(err){
@@ -330,14 +326,14 @@ app.post('/sendUserUserMessage', function(request, response){
                 statusCode:404,
                 message:"Error finding current user"
             }));
-            return
+            return;
         }
         else if (user1 === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Current user is invalid"
             }));
-            return
+            return;
         }
         Users.findOne({_id: request.body.userTo}, function(err,user2){
             if(err){
@@ -345,18 +341,19 @@ app.post('/sendUserUserMessage', function(request, response){
                     statusCode:404,
                     message:"Error finding user"
                 }));
-                return
+                return;
             }
             else if(user2 === null){
                 response.status(404).send(JSON.stringify({
                     statusCode:404,
                     message:"Recipient is invalid"
                 }));
-                return
+                return;
             }
             Messages.create({
                 to: request.body.userTo,
                 from: request.session.user.id,
+                type: 'text',
                 dateTime: Date.now(),
                 text: request.body.text
             }, function(err,message){
@@ -365,7 +362,7 @@ app.post('/sendUserUserMessage', function(request, response){
                         statusCode:404,
                         message:"Error creating message"
                     }));
-                    return
+                    return;
                 }
                 message.id = message._id;
                 message.save();
@@ -383,14 +380,14 @@ app.post('/updatePermissions', function(request, response){
             statusCode:401,
             message: "Unauthorized"
         }));
-        return
+        return;
     }
     if(Object.keys(request.body).length !== 6 || (typeof request.body.botId !== 'string' || typeof request.body.basicPerm !== 'boolean' || typeof request.body.emailPerm !== 'boolean' || typeof request.body.birthdayPerm !== 'boolean' || typeof request.body.locationPerm !== 'boolean' || typeof request.body.allPerm !== 'boolean')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
             message:"Missing or invalid arguments"
         }));
-        return
+        return;
     }
     //I suppose this doesn't take into account the reverse, but I'm not too worried about that case, since it'll give less access
     if(request.body.allPerm && (!request.body.basicPerm || !request.body.emailPerm || !request.body.birthdayPerm || !request.body.locationPerm)){
@@ -398,7 +395,7 @@ app.post('/updatePermissions', function(request, response){
             statusCode:404,
             message:"Contradictory arguments"
         }));
-        return
+        return;
     }
     Bots.findOne({_id: request.body.botId}, function(err,bot){
         if(err){
@@ -406,14 +403,14 @@ app.post('/updatePermissions', function(request, response){
                 statusCode:404,
                 message: "Error finding bot"
             }));
-            return
+            return;
         }
         else if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message: "Invalid bot"
             }));
-            return
+            return;
         }
         Users.findOne({_id: request.session.user.id}, function(err,user){
             if(err){
@@ -421,14 +418,14 @@ app.post('/updatePermissions', function(request, response){
                     statusCode:404,
                     message:"Error finding user"
                 }));
-                return
+                return;
             }
             else if(user === null){
                 response.status(404).send(JSON.stringify({
                     statusCode:404,
                     message: "Invalid user"
                 }));
-                return
+                return;
             }
             user.currentBots.push(request.body.botId);
             if(request.body.basicPerm){
@@ -461,14 +458,14 @@ app.post('/sendMessage', function(request, response){
                 message: "Unauthorized"
             })
         );
-        return
+        return;
     }
     if(typeof request.body.text !== 'string' || request.body.text.length < 1 || typeof request.body.botId !== 'string'){
         response.status(400).send(JSON.stringify({
             statusCode:400,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Bots.findOne({id: request.body.botId}, function(err,bot){
         if(err){
@@ -476,26 +473,27 @@ app.post('/sendMessage', function(request, response){
                 statusCode:500,
                 message:"Error finding bot"
             }));
-            return
+            return;
         }
         else if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid bot"
             }));
-            return
+            return;
         }
         Messages.create({
             to: request.body.botId,
             from: request.session.user.id,
-            text: request.body.text
+            text: request.body.text,
+            type: 'text'
         }, function(err, mess){
             if(err){
                 response.status(500).send(JSON.stringify({
                     statusCode:500,
                     message: "Error creating message"
                 }));
-                return
+                return;
             }
             mess.id = mess._id;
             mess.save();
@@ -514,51 +512,53 @@ app.post('/sendMessage', function(request, response){
                                 statusCode:404,
                                 message:"Could not send message to bot"
                             }));
-                            return
+                            return;
                         }
                         response.status(200).send(JSON.stringify({
                             sentMessage: true,
                             receivedResponse: false
                         }));
-                        return
+                        return;
                     }
                     else{
                         response.status(500).send(JSON.stringify({
                             statusCode:500,
                             message:"Error posting to bot"
                         }));
-                        return
+                        return;
                     }
                 }
-                if(typeof body.text !== 'string' || body.text.length < 1){
+                if(typeof body.type !== 'string' || (body.type !== 'text' && body.type !== 'mc')){
+                    response.status(400).send(JSON.stringify({
+                        statusCode:400,
+                        message:"Invalid bot response type"
+                    }));
+                    return;
+                }
+                if((body.type === 'text' && (typeof body.text !== 'string' || body.text.length < 1)) || (body.type === 'mc' && (typeof body.options === 'undefined' || body.options.length < 1))){
                     response.status(400).send(JSON.stringify({
                         statusCode:400,
                         message:"Invalid bot response"
                     }));
-                    return
+                    return;
                 }
                 var responseMessage = body.text;
                 Messages.create({
                     to: request.session.user.id,
                     from: request.body.botId,
-                    text: body.text
+                    type: body.type,
+                    text: body.text,
+                    options: body.options
                 }, function(err, mess2){
                     if(err){
                         response.status(500).send(JSON.stringify({
                             statusCode: 500,
                             message: "Error posting bot response"
                         }));
-                        return
+                        return;
                     }
                     mess2.id = mess2._id;
                     mess2.save();
-                    //var returnObj = {};
-                    //returnObj.message = {};
-                    //returnObj.message.text = mess2.text;
-                    //returnObj.message.to = mess2.to;
-                    //returnObj.message.from = mess2.from;
-                    //returnObj.message.dateTime = mess2.dateTime;
-                    //response.send(JSON.stringify(returnObj));
                     response.send(JSON.stringify({
                         sentMessage: true,
                         receivedResponse: true
@@ -567,7 +567,6 @@ app.post('/sendMessage', function(request, response){
             });
         });
     });
-
 });
 
 app.post('/sendGroupMessage', function(request,response){
@@ -576,14 +575,14 @@ app.post('/sendGroupMessage', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     if(typeof request.body.text !== 'string' || typeof request.body.convoId !== 'string'){
         response.status(400).send(JSON.stringify({
             statusCode:400,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     GroupConversations.findOne({id: request.body.convoId}, function(err,convo){
         if(err){
@@ -591,14 +590,14 @@ app.post('/sendGroupMessage', function(request,response){
                 statusCode:500,
                 message:"Error finding conversation"
             }));
-            return
+            return;
         }
         else if(convo === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid conversation"
             }));
-            return
+            return;
         }
         Bots.findOne({id: convo.botMember}, function(err,bot){
             if(err){
@@ -606,26 +605,26 @@ app.post('/sendGroupMessage', function(request,response){
                     statusCode:500,
                     message:"Error finding bot"
                 }));
-                return
+                return;
             }
             else if(bot === null){
                 response.status(404).send(JSON.stringify({
                     statusCode:404,
                     message:"Invalid bot"
                 }));
-                return
+                return;
             }
             GroupMessages.create({
                 convoId: request.body.convoId,
                 from: request.session.user.id,
-                text: request.body.text,
+                text: request.body.text
             }, function(err,messObj){
                 if(err){
                     response.status(500).send(JSON.stringify({
                         statusCode:500,
                         message:"Error creating message"
                     }));
-                    return
+                    return;
                 }
                 messObj.id = messObj._id;
                 messObj.save();
@@ -644,20 +643,20 @@ app.post('/sendGroupMessage', function(request,response){
                                     statusCode:404,
                                     message:"Could not send message to bot"
                                 }));
-                                return
+                                return;
                             }
                             response.status(200).send(JSON.stringify({
                                 sentMessage: true,
                                 receivedResponse: false
                             }));
-                            return
+                            return;
                         }
                         else{
                             response.status(500).send(JSON.stringify({
                                 statusCode:500,
                                 message:"Error posting to bot"
                             }));
-                            return
+                            return;
                         }
                     }
                     if(typeof body.text !== 'string' || body.text.length < 1){
@@ -665,7 +664,7 @@ app.post('/sendGroupMessage', function(request,response){
                             statusCode:400,
                             message:"Invalid bot response"
                         }));
-                        return
+                        return;
                     }
                     GroupMessages.create({
                         convoId: request.body.convoId,
@@ -677,7 +676,7 @@ app.post('/sendGroupMessage', function(request,response){
                                 statusCode:500,
                                 message:"Error saving bot response"
                             }));
-                            return
+                            return;
                         }
                         newMessage.id = newMessage._id;
                         newMessage.save();
@@ -689,7 +688,6 @@ app.post('/sendGroupMessage', function(request,response){
                 });
             });
         });
-
     });
 });
 
@@ -699,14 +697,14 @@ app.post('/makeGroup', function(request, response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     if(Object.keys(request.body).length !== 3 || !Array.isArray(request.body.users)|| typeof request.body.name !== 'string' || typeof request.body.name.length < 1 || typeof request.body.botId !== 'string'){
         response.status(400).send(JSON.stringify({
             statusCode:400,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Bots.findOne({_id: request.body.botId}, function(err,bot){
         if(err){
@@ -714,14 +712,14 @@ app.post('/makeGroup', function(request, response){
                 statusCode:500,
                 message:"Error finding bot"
             }));
-            return
+            return;
         }
         else if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid bot"
             }));
-            return
+            return;
         }
         var calls = [];
         var errorInUsers = false;
@@ -745,21 +743,21 @@ app.post('/makeGroup', function(request, response){
                     statusCode:500,
                     message:"Error in async"
                 }));
-                return
+                return;
             }
             else if(errorInUsers){
                 response.status(500).send(JSON.stringify({
                     statusCode:500,
                     message:"Error finding user"
                 }));
-                return
+                return;
             }
             else if(badUser){
                 response.status(400).send(JSON.stringify({
                     statusCode:400,
                     message:"Invalid users"
                 }));
-                return
+                return;
             }
             GroupConversations.create({
                 userMembers:request.body.users,
@@ -771,7 +769,7 @@ app.post('/makeGroup', function(request, response){
                         statusCode:500,
                         message:"Error creating group"
                     }));
-                    return
+                    return;
                 }
                 groupObj.id = groupObj._id;
                 groupObj.save();
@@ -793,7 +791,7 @@ app.get('/groupConversation/:convoId', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     GroupConversations.findOne({_id: request.params.convoId}, function(err,convo){
         if(err){
@@ -801,14 +799,14 @@ app.get('/groupConversation/:convoId', function(request,response){
                 statusCode:500,
                 message: "Error finding conversation"
             }));
-            return
+            return;
         }
         else if(convo === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message: "Invalid conversation"
             }));
-            return
+            return;
         }
         GroupMessages.find({convoId: request.params.convoId}, function(err, messages){
             if(err){
@@ -816,14 +814,14 @@ app.get('/groupConversation/:convoId', function(request,response){
                     statusCode:500,
                     message:"Error finding messages"
                 }));
-                return
+                return;
             }
             else if(messages === null){
                 response.send(JSON.stringify({
                     hasMessages:false,
                     message: "No messages in conversation"
                 }));
-                return
+                return;
             }
             var returnMessages = [];
             var numMessages = messages.length;
@@ -852,7 +850,7 @@ app.get('/groupUsers/:convoId', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     GroupConversations.findOne({_id:request.params.convoId},function(err,group){
         if(err){
@@ -860,14 +858,14 @@ app.get('/groupUsers/:convoId', function(request,response){
                 statusCode:500,
                 message:"Error finding conversation"
             }));
-            return
+            return;
         }
         else if(group === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid group"
             }));
-            return
+            return;
         }
         var errorInUsers = false;
         var badUser = false;
@@ -890,7 +888,8 @@ app.get('/groupUsers/:convoId', function(request,response){
                         });
                     }
                     callback();
-                })});
+                });
+            });
         });
         async.series(calls, function(err,results){
             if(badUser){
@@ -898,14 +897,14 @@ app.get('/groupUsers/:convoId', function(request,response){
                     statusCode:404,
                     message:"Invalid user"
                 }));
-                return
+                return;
             }
             else if(errorInUsers){
                 response.status(500).send(JSON.stringify({
                     statusCode:500,
                     message:"Error finding users"
                 }));
-                return
+                return;
             }
             groupUsers.sort(function fun(a,b){
                 return a.lastName > b.lastName;
@@ -923,7 +922,7 @@ app.get('/group/:convoId', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     GroupConversations.findOne({id:request.params.convoId},function(err,group){
         if(err){
@@ -931,14 +930,14 @@ app.get('/group/:convoId', function(request,response){
                 statusCode:500,
                 message:"Error finding conversation"
             }));
-            return
+            return;
         }
         else if(group === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid conversation"
             }));
-            return
+            return;
         }
         response.send(JSON.stringify({
             name: group.name,
@@ -954,7 +953,7 @@ app.get('/groupMessages', function(request, response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     GroupConversations.find({userMembers: request.session.user.id}, function(err,groups){
         if(err){
@@ -962,14 +961,14 @@ app.get('/groupMessages', function(request, response){
                 statusCode:404,
                 message:"Error querying groups"
             }));
-            return
+            return;
         }
         else if(groups === null){
             response.send(JSON.stringify({
                 hasGroups: false,
                 message: "No groups"
             }));
-            return
+            return;
         }
         var currentGroups = [];
         for(var idx = 0; idx < groups.length; idx++){
@@ -994,14 +993,14 @@ app.get('/getFriendInfo/:type', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     if(request.params.type !== 'friends' && request.params.type !== 'pending' && request.params.type !== 'sentRequests'){
         response.status(400).send(JSON.stringify({
             statusCode:400,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Users.findOne({id: request.session.user.id}, function(err,user){
         if(err){
@@ -1009,14 +1008,14 @@ app.get('/getFriendInfo/:type', function(request,response){
                 statusCode:500,
                 message:"Error finding user"
             }));
-            return
+            return;
         }
         else if(user === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid login"
             }));
-            return
+            return;
         }
         var calls = [];
         var errorInUsers = false;
@@ -1037,7 +1036,7 @@ app.get('/getFriendInfo/:type', function(request,response){
                 noData: true,
                 people: []
             }));
-            return
+            return;
         }
         arrayOfPeople.forEach(function(friend, i){
             calls.push(function(callback){
@@ -1065,24 +1064,24 @@ app.get('/getFriendInfo/:type', function(request,response){
                     statusCode:500,
                     message:"Error in async"
                 }));
-                return
+                return;
             }
             else if(errorInUsers){
                 response.status(500).send(JSON.stringify({
                     statusCode:500,
                     message:"Error finding users"
                 }));
-                return
+                return;
             }
             else if(badUser){
                 response.status(500).send(JSON.stringify({
                     statusCode:500,
                     message:"Error in friends list"
                 }));
-                return
+                return;
             }
             userFriends.sort(function alpha(a,b){
-                return a.lastName > b.lastName
+                return a.lastName > b.lastName;
             });
             response.send(JSON.stringify({
                 noData: false,
@@ -1098,7 +1097,7 @@ app.get('/currentBotList', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     Bots.find(function(err,bots){
         if(err){
@@ -1106,14 +1105,14 @@ app.get('/currentBotList', function(request,response){
                 statusCode:404,
                 message:"Error finding bots"
             }));
-            return
+            return;
         }
         else if(bots === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"No bots"
             }));
-            return
+            return;
         }
         var currentBots = [];
         for(var idx in bots){
@@ -1137,7 +1136,7 @@ app.get('/getUser/:userId', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     Users.findOne({id: request.params.userId}, function(err,user){
         if(err){
@@ -1145,14 +1144,14 @@ app.get('/getUser/:userId', function(request,response){
                 statusCode:404,
                 message:"Error finding user"
             }));
-            return
+            return;
         }
         else if(user === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid user"
             }));
-            return
+            return;
         }
         var returnObj = {};
         returnObj.username = user.firstName + " " + user.lastName;
@@ -1169,7 +1168,7 @@ app.get('/isType/:id', function(request,response){
             statusCode:401,
             message:"Unauthorized"
         }));
-        return
+        return;
     }
     Users.findOne({id: request.params.id}, function(err,user){
         if(err){
@@ -1177,11 +1176,11 @@ app.get('/isType/:id', function(request,response){
                 statusCode:404,
                 message:"Error checking users"
             }));
-            return
+            return;
         }
         else if(user !== null){
             response.send(JSON.stringify({type: 'user'}));
-            return
+            return;
         }
         Bots.findOne({id: request.params.id}, function(err,bot){
             if(err){
@@ -1189,11 +1188,11 @@ app.get('/isType/:id', function(request,response){
                     statusCode:404,
                     message:"Error checking bots"
                 }));
-                return
+                return;
             }
             else if(bot !== null){
                 response.send(JSON.stringify({type: 'bot'}));
-                return
+                return;
             }
             response.status(404).send(JSON.stringify({
                 statusCode:404,
@@ -1209,7 +1208,7 @@ app.get('/userList', function(request,response){
             statusCode:401,
             message: "Unauthorized"
         }));
-        return
+        return;
     }
     Users.find(function(err,users){
         if(err){
@@ -1217,7 +1216,7 @@ app.get('/userList', function(request,response){
                 statusCode:404,
                 message:"Error finding users"
             }));
-            return
+            return;
         }
         var returnObj = {};
         returnObj.users = [];
@@ -1245,7 +1244,7 @@ app.get('/isCurrentBot/:botId', function(request,response){
             statusCode:401,
             message: "Unauthorized"
         }));
-        return
+        return;
     }
     Bots.findOne({_id: request.params.botId}, function(err,bot){
         if(err){
@@ -1253,14 +1252,14 @@ app.get('/isCurrentBot/:botId', function(request,response){
                 statusCode:404,
                 message: "Error finding bot"
             }));
-            return
+            return;
         }
         if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message: "Invalid bot"
             }));
-            return
+            return;
         }
         Users.findOne({_id: request.session.user}, function(err,user){
             if(err){
@@ -1268,14 +1267,14 @@ app.get('/isCurrentBot/:botId', function(request,response){
                     statusCode: 404,
                     message: "Error finding user"
                 }));
-                return
+                return;
             }
             if(user === null){
                 response.status(404).send(JSON.stringify({
                     statusCode: 404,
                     message: "Invalid user"
                 }));
-                return
+                return;
             }
             var returnObj = {};
             returnObj.currentBot = false;
@@ -1298,26 +1297,24 @@ app.get('/userDetail/:userId', function(request, response){
                 message: "Unauthorized"
             })
         );
+        return;
     }
-    else{
-        Users.findOne({_id: request.params.userId}, function(err, user){
-            if(err){
-                response.status(404).send(JSON.stringify({
-                    statusCode: 404,
-                    message: "Error finding User"
-                }));
-            }
-            else{
-                //may need to check if user is null, but tests indicated otherwise
-                var returnObj = {};
-                returnObj.user = {};
-                returnObj.user.firstName = user.firstName;
-                returnObj.user.lastName = user.lastName;
-                returnObj.user.location = user.location;
-                response.send(JSON.stringify(returnObj));
-            }
-        });
-    }
+    Users.findOne({_id: request.params.userId}, function(err, user){
+        if(err){
+            response.status(404).send(JSON.stringify({
+                statusCode: 404,
+                message: "Error finding User"
+            }));
+            return;
+        }
+        //may need to check if user is null, but tests indicated otherwise
+        var returnObj = {};
+        returnObj.user = {};
+        returnObj.user.firstName = user.firstName;
+        returnObj.user.lastName = user.lastName;
+        returnObj.user.location = user.location;
+        response.send(JSON.stringify(returnObj));
+    });
 });
 
 app.get('/botList', function(request, response){
@@ -1326,7 +1323,7 @@ app.get('/botList', function(request, response){
                 statusCode:401,
                 message: "Unauthorized"
         }));
-        return
+        return;
     }
     Bots.find(function(err, bots){
         if(err) {
@@ -1360,7 +1357,7 @@ app.get('/botListDetail', function(request, response){
             statusCode:401,
             message: "Unauthorized"
         }));
-        return
+        return;
     }
     Bots.find(function(err, bots){
         if(err) {
@@ -1401,7 +1398,7 @@ app.get('/getBot/:botId', function(request, response){
             statusCode:401,
             message: "Unauthorized"
         }));
-        return
+        return;
     }
     Bots.findOne({_id: request.params.botId}, function(err, bot){
         if(err){
@@ -1409,14 +1406,14 @@ app.get('/getBot/:botId', function(request, response){
                 statusCode: 404,
                 message: "Error finding Bot"
             }));
-            return
+            return;
         }
         else if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode: 404,
                 message: "Invalid bot"
             }));
-            return
+            return;
         }
         //may need to check if user is null, but tests indicated otherwise
         request.session.bot = bot;
@@ -1439,43 +1436,41 @@ app.get('/conversation/:id', function(request, response){
                 statusCode:401,
                 message: "Unauthorized"
         }));
+        return;
     }
-    else{
-        var bot = request.params.id;
-        var user = request.session.user.id;
-        Messages.find({$or: [{to: user, from: bot}, {to: bot, from: user}]}, function(err, messages){
-            if(err){
-                response.status(404).send(JSON.stringify({
-                    statusCode:404,
-                    message:"Error finding messages"
-                }));
+    var bot = request.params.id;
+    var user = request.session.user.id;
+    Messages.find({$or: [{to: user, from: bot}, {to: bot, from: user}]}, function(err, messages){
+        if(err){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message:"Error finding messages"
+            }));
+            return;
+        }
+        var messageList = [];
+        for(var idx=0; idx < messages.length; idx++){
+            var currMessage = messages[idx];
+            var newMessage = {};
+            newMessage.text = currMessage.text;
+            newMessage.dateTime = currMessage.dateTime;
+            newMessage.to = currMessage.to;
+            newMessage.from = currMessage.from;
+            messageList.push(newMessage);
+        }
+        messageList.sort(function(a,b){
+            if(a.dateTime < b.dateTime){
+                return -1;
             }
-            else{
-                var messageList = [];
-                for(var idx=0; idx < messages.length; idx++){
-                    var currMessage = messages[idx];
-                    var newMessage = {};
-                    newMessage.text = currMessage.text;
-                    newMessage.dateTime = currMessage.dateTime;
-                    newMessage.to = currMessage.to;
-                    newMessage.from = currMessage.from;
-                    messageList.push(newMessage);
+            if(a.dateTime > b.dateTime){
+                return 1;
                 }
-                messageList.sort(function(a,b){
-                    if(a.dateTime < b.dateTime){
-                        return -1;
-                    }
-                    if(a.dateTime > b.dateTime){
-                        return 1;
-                        }
-                        return 0;
-                    });
-                var returnObj = {};
-                returnObj.chatHistory = messageList;
-                response.send(JSON.stringify(returnObj));
-            }
-        });
-    }
+                return 0;
+            });
+        var returnObj = {};
+        returnObj.chatHistory = messageList;
+        response.send(JSON.stringify(returnObj));
+    });
 });
 
 //BOT UTILITIES
@@ -1492,7 +1487,7 @@ app.get('/userConversation/:botId/:userId', function(request,response){
             statusCode: 404,
             message:"Arguments not provided"
         }));
-        return
+        return;
     }
     var bot = request.params.botId;
     var user = request.params.userId;
@@ -1502,31 +1497,30 @@ app.get('/userConversation/:botId/:userId', function(request,response){
                 statusCode:404,
                 message:"Error finding messages"
             }));
+            return;
         }
-        else{
-            var messageList = [];
-            for(var idx=0; idx < messages.length; idx++){
-                var currMessage = messages[idx];
-                var newMessage = {};
-                newMessage.text = currMessage.text;
-                newMessage.dateTime = currMessage.dateTime;
-                newMessage.to = currMessage.to;
-                newMessage.from = currMessage.from;
-                messageList.push(newMessage);
+        var messageList = [];
+        for(var idx=0; idx < messages.length; idx++){
+            var currMessage = messages[idx];
+            var newMessage = {};
+            newMessage.text = currMessage.text;
+            newMessage.dateTime = currMessage.dateTime;
+            newMessage.to = currMessage.to;
+            newMessage.from = currMessage.from;
+            messageList.push(newMessage);
+        }
+        messageList.sort(function(a,b){
+            if(a.dateTime < b.dateTime){
+                return -1;
             }
-            messageList.sort(function(a,b){
-                if(a.dateTime < b.dateTime){
-                    return -1;
-                }
-                if(a.dateTime > b.dateTime){
-                    return 1;
-                }
-                return 0;
-            });
-            var returnObj = {};
-            returnObj.chatHistory = messageList;
-            response.send(JSON.stringify(returnObj));
-        }
+            if(a.dateTime > b.dateTime){
+                return 1;
+            }
+            return 0;
+        });
+        var returnObj = {};
+        returnObj.chatHistory = messageList;
+        response.send(JSON.stringify(returnObj));
     });
 });
 
@@ -1546,7 +1540,7 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
             statusCode:404,
             message:"Invalid type request"
         }));
-        return
+        return;
     }
     Bots.findOne({id: botId}, function(err, botObj){
         if(err){
@@ -1554,14 +1548,14 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
                 statusCode:404,
                 message:"Error authenticating bot"
             }));
-            return
+            return;
         }
         else if(botObj === null){
             response.status(401).send(JSON.stringify({
                 statusCode:401,
                 message:"Invalid bot id"
             }));
-            return
+            return;
         }
         Users.findOne({id: userId}, function(err, userObj){
             if(err){
@@ -1569,39 +1563,39 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
                     statusCode:404,
                     message:"Error finding user"
                 }));
-                return
+                return;
             }
             else if(userObj === null){
                 response.status(401).send(JSON.stringify({
                     statusCode:401,
                     message:"Invalid user id"
                 }));
-                return
+                return;
             }
             var botAuth;
             if(type === 'basic'){
                 botAuth = userObj.basicAuthBots.find(function findId(id){
-                    return id === botId
+                    return id === botId;
                 });
             }
             else if(type === 'email'){
                 botAuth = userObj.emailAuthBots.find(function findId(id){
-                    return id === botId
+                    return id === botId;
                 });
             }
             else if(type === 'birthday'){
                 botAuth = userObj.birthdayAuthBots.find(function findId(id){
-                    return id === botId
+                    return id === botId;
                 });
             }
             else if(type === 'location'){
                 botAuth = userObj.locationAuthBots.find(function findId(id){
-                    return id === botId
+                    return id === botId;
                 });
             }
             else if(type === 'all'){
                 botAuth = userObj.allAuthBots.find(function findId(id){
-                    return id === botId
+                    return id === botId;
                 });
             }
             if(typeof botAuth === 'undefined'){
@@ -1609,7 +1603,7 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
                     statusCode:401,
                     message:"Not authorized"
                 }));
-                return
+                return;
             }
             var returnObj = {};
             if(type === 'basic'){
@@ -1652,7 +1646,7 @@ app.post('/botSendGroupMessage', function(request,response){
             statusCode:400,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Bots.findOne({_id:request.body.botId}, function(err,bot){
         if(err){
@@ -1660,14 +1654,14 @@ app.post('/botSendGroupMessage', function(request,response){
                 statusCode:500,
                 message:"Error finding bot"
             }));
-            return
+            return;
         }
         else if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid bot"
             }));
-            return
+            return;
         }
         GroupConversations.findOne({_id:request.body.convoId}, function(err,convo){
             if(err){
@@ -1675,21 +1669,21 @@ app.post('/botSendGroupMessage', function(request,response){
                     statusCode:500,
                     message:"Error finding conversation"
                 }));
-                return
+                return;
             }
             else if(convo === null){
                 response.status(404).send(JSON.stringify({
                     statusCode:404,
                     message:"Invalid conversation"
                 }));
-                return
+                return;
             }
             else if(convo.botMember !== bot.id){
                 response.status(400).send(JSON.stringify({
                     statusCode:400,
                     message:"Bot not member of conversation"
                 }));
-                return
+                return;
             }
             GroupMessages.create({
                 convoId: request.body.convoId,
@@ -1701,7 +1695,7 @@ app.post('/botSendGroupMessage', function(request,response){
                         statusCode:500,
                         message:"Error saving message"
                     }));
-                    return
+                    return;
                 }
                 groupMess.id = groupMess._id;
                 groupMess.save();
@@ -1721,12 +1715,12 @@ app.post('/botSendMessage', function(request, response){
         }));
         return;
     }
-    if(Object.keys(request.body).length !== 3 || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || typeof request.body.text !== 'string'){
+    if(Object.keys(request.body).length !== 4 || typeof request.body.type !== 'string' || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || (request.body.text === 'string' && typeof request.body.text !== 'string') || (request.body.type === 'mc' && typeof request.body.options !== 'undefined')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
             message:"Invalid arguments"
         }));
-        return
+        return;
     }
     Bots.findOne({_id:request.body.botId}, function(err,bot){
         if(err){
@@ -1734,14 +1728,14 @@ app.post('/botSendMessage', function(request, response){
                 statusCode:404,
                 message:"Error finding bot"
             }));
-            return
+            return;
         }
         else if(bot === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
                 message:"Invalid bot"
             }));
-            return
+            return;
         }
         Users.findOne({_id:request.body.userId}, function(err,user){
             if(err){
@@ -1749,26 +1743,28 @@ app.post('/botSendMessage', function(request, response){
                     statusCode:404,
                     message:"Error finding user"
                 }));
-                return
+                return;
             }
             else if(user === null){
                 response.status(404).send(JSON.stringify({
                     statusCode:404,
                     message:"Invalid user"
                 }));
-                return
+                return;
             }
             Messages.create({
                 to: request.body.userId,
                 from: request.body.botId,
-                text: request.body.text
+                type: request.body.type,
+                text: request.body.text,
+                options: request.body.options
             }, function(err, mess){
                 if(err){
                     response.status(404).send(JSON.stringify({
                         statusCode:404,
                         message:"Error creating message"
                     }));
-                    return
+                    return;
                 }
                 mess.id = mess._id;
                 mess.save();

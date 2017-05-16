@@ -9,7 +9,9 @@ var groupMessageSchema = mongoose.Schema({
     convoId: mongoose.Schema.Types.ObjectId,
     from: mongoose.Schema.Types.ObjectId,
     dateTime: {type: Date, default: Date.now()},
-    text: String
+    text: String,
+    type: {type: String, required: true},
+    options: {type: [String], default: []}
 });
 
 var GroupMessages = mongoose.model('GroupMessages', groupMessageSchema);

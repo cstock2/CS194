@@ -830,7 +830,7 @@ describe("Test Server APIs", function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({from:"u1",to:"a",text:"hello"}).yields({error:"error"},null);
+                            stub.withArgs({from:"u1",to:"a",text:"hello",type:'text'}).yields({error:"error"},null);
                         });
                         after(function(){
                             sandbox.restore();
@@ -848,7 +848,7 @@ describe("Test Server APIs", function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
                             sandbox.stub(requestObj, 'post').yields( {code: 'ETIMEDOUT', connect: true});
                         });
                         after(function(){
@@ -867,7 +867,7 @@ describe("Test Server APIs", function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
                             sandbox.stub(requestObj, 'post').yields( {error:"error"});
                         });
                         after(function(){
@@ -880,14 +880,33 @@ describe("Test Server APIs", function(){
                             });
                         });
                     });
+                    describe('bot does not return valid type', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
+                            var stub = sandbox.stub(Messages, 'create');
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {type:'bad'});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/sendMessage').send(message).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid bot response type"}');
+                                done();
+                            });
+                        });
+                    });
                     describe('invalid bot response', function(){
                         var sandbox;
                         before(function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
-                            sandbox.stub(requestObj, 'post').yields(null, null, {});
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {type:'text'});
                         });
                         after(function(){
                             sandbox.restore();
@@ -905,9 +924,9 @@ describe("Test Server APIs", function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
-                            sandbox.stub(requestObj, 'post').yields(null, null, {text:"goodbye"});
-                            stub.withArgs({to:"u1",from:"a",text:"goodbye"}).yields({error:"error"},null);
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {text:"goodbye",type:'text',options:[]});
+                            stub.withArgs({to:"u1",from:"a",text:"goodbye",type:'text',options:[]}).yields({error:"error"},null);
                         });
                         after(function(){
                             sandbox.restore();
@@ -927,7 +946,7 @@ describe("Test Server APIs", function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
                             sandbox.stub(requestObj, 'post').yields( {code: 'ETIMEDOUT'});
                         });
                         after(function(){
@@ -948,9 +967,9 @@ describe("Test Server APIs", function(){
                             sandbox = sinon.sandbox.create();
                             sandbox.stub(Bots, 'findOne').yields(null, {url: "http://example.com"});
                             var stub = sandbox.stub(Messages, 'create');
-                            stub.withArgs({to:"a",from:"u1",text:"hello"}).yields(null,{_id:"b",save: function fun(){}});
-                            sandbox.stub(requestObj, 'post').yields(null, null, {text:"goodbye"});
-                            stub.withArgs({to:"u1",from:"a",text:"goodbye"}).yields(null,{_id:"c",save:function fun(){}});
+                            stub.withArgs({to:"a",from:"u1",text:"hello",type:'text'}).yields(null,{_id:"b",save: function fun(){}});
+                            sandbox.stub(requestObj, 'post').yields(null, null, {text:"goodbye",type:'text',options: []});
+                            stub.withArgs({to:"u1",from:"a",text:"goodbye",type:'text',options:[]}).yields(null,{_id:"c",save:function fun(){}});
                         });
                         after(function(){
                             sandbox.restore();
@@ -2887,7 +2906,7 @@ describe("Test Server APIs", function(){
             });
         });
         describe('botSendMessage', function(){
-            var message = {botId: "alpha", userId: "beta", text: "gamma"};
+            var message = {type: 'text', botId: "alpha", userId: "beta", text: "gamma"};
             describe('failing cases', function(){
                 describe('unauthorized', function(){
                     it('returns 401 error', function(done){
