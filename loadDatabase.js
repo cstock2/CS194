@@ -167,8 +167,7 @@ Promise.all(removePromises).then(function(){
                                     convoId: idToId[multiMessage.convoId],
                                     from: idToId[multiMessage.from],
                                     text: multiMessage.text,
-                                    type: multiMessage.type,
-                                    options: multiMessage.options
+                                    dateTime: multiMessage.dateTime
                                 }, function(err, multiObj){
                                     if(err){
                                         console.log("Error making group message: ", err);

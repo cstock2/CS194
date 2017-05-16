@@ -94,7 +94,6 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
     };
 
     $scope.gsc.makeGroup = function(){
-        console.log($scope.gsc.newGroup);
         if($scope.gsc.newGroup.users.length < 2){
             $scope.gsc.needUsers = true;
         }
@@ -150,7 +149,6 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
                 }
             });
         var data = resource.save(JSON.stringify($scope.gsc.newGroup), function(returnObj, err){
-            console.log("Finished making group");
             if(returnObj !== null){
                 $scope.main.username = returnObj.name;
                 $scope.main.loggedIn = true;
@@ -163,7 +161,6 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
     $scope.makePage = function(){
         var friendResource = $resource('/getFriendInfo/friends');
         var friendData = friendResource.get(function(err,res){
-            console.log(friendData);
             $scope.gsc.friends = friendData.people;
             if(friendData.people.length === 0){
                 $scope.gsc.noFriends = true;
@@ -173,14 +170,12 @@ chatApp.controller('GroupStartController', ['$scope','$resource','$location', fu
             }
             var currBotResource = $resource('/currentBotList');
             var currBotData = currBotResource.get(function(){
-                console.log(currBotData);
                 $scope.gsc.currBots = currBotData.bots;
                 for(var idx2 in $scope.gsc.currBots){
                     $scope.gsc.currBots[idx2].selected = false;
                 }
                 var allBotResource = $resource('/botListDetail');
                 var allBotData = allBotResource.get(function(){
-                    console.log(allBotData);
                     $scope.gsc.allBots = allBotData.botList;
                     var notCurrBots = [];
                     $scope.gsc.allBots.forEach(function check(currBot){

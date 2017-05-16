@@ -223,7 +223,7 @@ function getData(){
         convoId: "20",
         from: "2",
         text: "Wow, speedy response",
-        dateTime: new Date("2017-05-01 1:05 PDT"),
+        dateTime: new Date("2017-05-01 1:05:00 PDT"),
         type: 'text'
     });
     multiMessages.push({
@@ -231,7 +231,7 @@ function getData(){
         convoId: "20",
         from: "10",
         text: "Wow, speedy response",
-        dateTime: new Date("2017-05-01 1:05:01 PDT"),
+        dateTime: new Date("2017-05-01 1:05:02 PDT"),
         type: 'text'
     });
     multiMessages.push({

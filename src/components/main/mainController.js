@@ -59,6 +59,7 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     $scope.main.margin = '5px';
     $scope.main.inputStyle = {'margin-top': $scope.main.margin, 'margin-bottom': $scope.main.margin, 'margin-right': $scope.main.margin, 'margin-left':$scope.main.margin};
     $scope.main.button = {'box-shadow': '0 0 3px #ccc'};
+    $scope.main.buttonSelected = {'box-shadow': '0 0 3px #ccc', color: 'blue'};
 
     $scope.main.beginPage = function(){
         var sessionResource = $resource('/admin/getSession');

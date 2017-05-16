@@ -192,3 +192,14 @@ div{
     padding:2px;
     overflow-wrap:break-word;
 }
+
+.main-chat-user{
+    margin:5px;
+    font-size:14px;
+    padding:2px;
+}
+
+.main-view-box{
+    overflow-y:scroll;
+    height: 700px;
+}
