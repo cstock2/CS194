@@ -12,9 +12,12 @@
     margin: 5px;
     box-shadow: 0 0 3px #ccc;
 }
+/*div{*/
+    /*font-family: "Roboto", sans-serif;*/
+    /*background-color: #fafafa;*/
+/*}*/
 div{
     font-family: "Roboto", sans-serif;
-    background-color: #fafafa;
 }
 
 .main-table {
@@ -148,4 +151,15 @@ div{
     width: 20%;
     margin-left: auto;
     margin-right: auto;
+}
+
+.main-half{
+    width:50%;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.main-centered{
+    margin-left:auto;
+    margin-right:auto;
 }

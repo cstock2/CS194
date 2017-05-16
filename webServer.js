@@ -1124,35 +1124,52 @@ app.get('/currentBotList', function(request,response){
         }));
         return;
     }
-    Bots.find(function(err,bots){
+    Users.findOne({id: request.session.user.id}, function(err,user){
         if(err){
-            response.status(404).send(JSON.stringify({
-                statusCode:404,
-                message:"Error finding bots"
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding user"
             }));
             return;
         }
-        else if(bots === null){
+        else if(user === null){
             response.status(404).send(JSON.stringify({
                 statusCode:404,
-                message:"No bots"
+                message:"Invalid user"
             }));
             return;
         }
-        var currentBots = [];
-        for(var idx in bots){
-            var currBot = bots[idx];
-            if(typeof request.session.user.currentBots.find(function find(id){return currBot.id === id})!== 'undefined'){
-                currentBots.push({id: currBot.id, name: currBot.name, basicPerm: currBot.basicPerm, emailPerm: currBot.emailPerm, locationPerm: currBot.locationPerm, birthdayPerm: currBot.birthdayPerm, allPerm:currBot.allPerm});
+        Bots.find(function(err,bots){
+            if(err){
+                response.status(404).send(JSON.stringify({
+                    statusCode:404,
+                    message:"Error finding bots"
+                }));
+                return;
             }
-        }
-        currentBots.sort(function(a,b){
-            return a.name > b.name;
+            else if(bots === null){
+                response.status(404).send(JSON.stringify({
+                    statusCode:404,
+                    message:"No bots"
+                }));
+                return;
+            }
+            var currentBots = [];
+            for(var idx in bots){
+                var currBot = bots[idx];
+                if(typeof user.currentBots.find(function find(id){return currBot.id == id})!== 'undefined'){
+                    currentBots.push({id: currBot.id, name: currBot.name, basicPerm: currBot.basicPerm, emailPerm: currBot.emailPerm, locationPerm: currBot.locationPerm, birthdayPerm: currBot.birthdayPerm, allPerm:currBot.allPerm});
+                }
+            }
+            currentBots.sort(function(a,b){
+                return a.name > b.name;
+            });
+            var returnObj = {};
+            returnObj.bots = currentBots;
+            response.send(JSON.stringify(returnObj));
         });
-        var returnObj = {};
-        returnObj.bots = currentBots;
-        response.send(JSON.stringify(returnObj));
     });
+
 });
 
 app.get('/getUser/:userId', function(request,response){

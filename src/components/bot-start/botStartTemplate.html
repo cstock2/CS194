@@ -5,14 +5,26 @@
     <title>Title</title>
 </head>
 <body>
-    <div class="main-link">{{bsc.bot.name}}</div>
-    <div>This bot requires the following permissions</div>
-    <div ng-if="bsc.bot.basicPerm">Name, gender</div>
-    <div ng-if="bsc.bot.emailPerm">Email Address</div>
-    <div ng-if="bsc.bot.locationPerm">Location</div>
-    <div ng-if="bsc.bot.birthdayPerm">Birthday</div>
-    <div ng-click="bsc.acceptPermissions()" class="main-link">Accept and continue to bot</div>
-    <div ng-click="bsc.declinePermissions()" class="main-link">Decline and return to home page</div>
-
+<md-card>
+        <md-card-title-text>
+            <div layout="row" layout-align="center center">
+                <h1>{{bsc.bot.name}}</h1>
+            </div>
+        </md-card-title-text>
+        <md-card-content>
+            <div layout="column" layout-align="center center">
+                <h3>{{bsc.bot.description}}</h3>
+                <h4>This bot requires the following permissions</h4>
+                <div ng-if="bsc.bot.basicPerm">Name, gender</div>
+                <div ng-if="bsc.bot.emailPerm">Email Address</div>
+                <div ng-if="bsc.bot.locationPerm">Location</div>
+                <div ng-if="bsc.bot.birthdayPerm">Birthday</div>
+            </div>
+            <div layout="row" layout-align="center center">
+                <md-button ng-style="main.button" ng-click="bsc.acceptPermissions()">Accept and start conversation</md-button>
+                <md-button ng-style="main.button" ng-click="bsc.declinePermissions()">Decline and return to home page</md-button>
+            </div>
+        </md-card-content>
+    </md-card>
 </body>
 </html>

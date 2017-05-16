@@ -7,13 +7,36 @@
 <body>
 <div class="main-title">Explore some bots!</div>
 <div class="main-subhead">Continue with your current bots</div>
-<div ng-repeat="x in bec.currBots">
-    <div class="main-link" ng-click="main.setLocation('/conversation/'+x.id)">{{x.name}}</div>
-</div>
+<!--<div ng-repeat="x in bec.currBots">-->
+    <!--<div class="main-link" ng-click="main.setLocation('/conversation/'+x.id)">{{x.name}}</div>-->
+<!--</div>-->
+<md-card ng-repeat="x in bec.currBots" class="main-half">
+    <md-card-title-text>
+        <div class="main-head">{{x.name}}</div>
+    </md-card-title-text>
+    <md-card-content>
+        <div layout="row" layout-align="center center">
+            <md-button ng-style="main.button" ng-click="main.setLocation('/conversation/'+x.id)">Continue Conversation</md-button>
+        </div>
+    </md-card-content>
+</md-card>
 <div class="main-subhead">Or explore new bots</div>
-<div ng-repeat="x in bec.allBots">
-    <div class="main-link" ng-click="main.setLocation('/botStart/' + x.id)">{{x.name}}</div>
-    <div class="main-descip">{{x.description}}</div>
-</div>
+<md-card ng-repeat="x in bec.allBots" class="main-half">
+    <md-card-title-text>
+        <div class="main-head">{{x.name}}</div>
+    </md-card-title-text>
+    <md-card-content>
+        <div layout="row" layout-align="center center">
+            <h4 class="main-center">{{x.description}}</h4>
+        </div>
+        <div layout="row" layout-align="center center">
+            <md-button ng-style="main.button" ng-click="main.setLocation('/botStart/' + x.id)">Start a conversation</md-button>
+        </div>
+    </md-card-content>
+</md-card>
+<!--<div ng-repeat="x in bec.allBots">-->
+    <!--<div class="main-link" ng-click="main.setLocation('/botStart/' + x.id)">{{x.name}}</div>-->
+    <!--<div class="main-descip">{{x.description}}</div>-->
+<!--</div>-->
 </body>
 </html>

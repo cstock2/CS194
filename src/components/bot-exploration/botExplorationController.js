@@ -6,6 +6,7 @@ chatApp.controller('BotExplorationController', ['$scope', '$location','$resource
     $scope.bec = {};
 
     $scope.makePage = function(){
+        console.log("Starting making page");
         var currBots = $resource('/currentBotList');
         var currBotData = currBots.get(function(){
             $scope.bec.currBots = currBotData.bots;
@@ -21,6 +22,8 @@ chatApp.controller('BotExplorationController', ['$scope', '$location','$resource
                     }
                 }
                 $scope.bec.allBots = notCurrBots;
+                console.log($scope.bec.currBots);
+                console.log($scope.bec.allBots);
             });
         });
     };

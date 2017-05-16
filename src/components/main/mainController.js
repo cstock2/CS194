@@ -58,6 +58,7 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
 
     $scope.main.margin = '5px';
     $scope.main.inputStyle = {'margin-top': $scope.main.margin, 'margin-bottom': $scope.main.margin, 'margin-right': $scope.main.margin, 'margin-left':$scope.main.margin};
+    $scope.main.button = {'box-shadow': '0 0 3px #ccc'};
 
     $scope.main.beginPage = function(){
         var sessionResource = $resource('/admin/getSession');
@@ -107,8 +108,8 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
             $location.path(arg);
         }
         //$location.path(arg);
-        console.log("Got here");
-        $scope.$apply();
+        // console.log("Got here");
+        // $scope.$apply();
     };
 
     //This method ensures that if you are no longer logged in, you do not get to access other people's information
@@ -119,7 +120,7 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
             if(sessionData.isSession){
                 $scope.main.userId = sessionData.id;
                 $scope.main.loggedIn = true;
-                $scope.main.userName = sessionData.firstName + ' ' + sessionData.lastName;
+                $scope.main.username = sessionData.firstName + ' ' + sessionData.lastName;
             }
             else{
                 $scope.main.loggedIn = false;

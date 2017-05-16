@@ -1450,10 +1450,43 @@ describe("Test Server APIs", function(){
                             });
                         });
                     });
+                    describe('error finding user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields({error: 'error'}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.get('/currentBotList').expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 404 error', function(done){
+                            server.get('/currentBotList').expect(404).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":404,"message":"Invalid user"}');
+                                done();
+                            });
+                        })
+                    });
                     describe('error finding bots', function(){
                         var sandbox;
                         before(function(){
                             sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields(null, {currentBots: ["1","2","3","5"]});
                             sandbox.stub(Bots, 'find').yields({error:"error"},null);
                         });
                         after(function(){
@@ -1470,6 +1503,7 @@ describe("Test Server APIs", function(){
                         var sandbox;
                         before(function(){
                             sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields(null, {currentBots: ["1","2","3","5"]});
                             sandbox.stub(Bots, 'find').yields(null, null);
                         });
                         after(function(){
@@ -1493,6 +1527,7 @@ describe("Test Server APIs", function(){
                     var sandbox;
                     before(function(){
                         sandbox = sinon.sandbox.create();
+                        sandbox.stub(Users, 'findOne').yields(null, {currentBots: ["1","2","3","5"]});
                         sandbox.stub(Bots, 'find').yields(null, data);
                     });
                     after(function(){
