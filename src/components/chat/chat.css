@@ -10,6 +10,13 @@
 }
 .chat-body{
     width:85%;
+    height:500px;
     margin-left:auto;
     margin-right:auto;
+    overflow-y:scroll;
+    box-shadow: 0 0 3px #ccc;
+}
+
+.chat-submit{
+    width:90%;
 }

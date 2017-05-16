@@ -105,11 +105,12 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                 var resource2 = $resource('/conversation/:id', {id:'@id'});
                 var data2 = resource2.get({id: $routeParams.id}, function(){
                     $scope.cc.chatHistory = data2.chatHistory;
-                    for(idx in $scope.cc.chatHistory){
+                    for(var idx in $scope.cc.chatHistory){
                         var currChat = $scope.cc.chatHistory[idx];
                         var dateString = $scope.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;
                     }
+                    console.log($scope.cc.chatHistory);
                 });
             }
             else if(btr.type === 'bot'){
@@ -121,7 +122,7 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                 var resource = $resource('/conversation/:id', {id:'@id'});
                 var data = resource.get({id: $routeParams.id}, function(){
                     $scope.cc.chatHistory = data.chatHistory;
-                    for(idx in $scope.cc.chatHistory){
+                    for(var idx in $scope.cc.chatHistory){
                         var currChat = $scope.cc.chatHistory[idx];
                         var dateString = $scope.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;

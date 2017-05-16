@@ -12,36 +12,32 @@
     <div class="main-head">Conversation with {{cc.currUser.fullName}}</div>
 </div>
 <div class="chat-body">
-    <div ng-if="cc.isBot">
-        <div ng-repeat="x in cc.chatHistory">
-            <div ng-if="cc.isUser(x.to)" class="chat-user">
-                <div>{{x.text}}</div>
-                <div>{{x.dateTime}}</div>
-            </div>
-            <div ng-if="cc.isNotUser(x.to)" class="chat-other">
-                <div>{{x.text}}</div>
-                <div>{{x.dateTime}}</div>
+    <div ng-repeat="x in cc.chatHistory">
+        <div ng-if="cc.isUser(x.to)">
+            <div class="main-chat-right">
+                <div class="main-chat-time">{{x.dateTime}}</div>
+                <div class="main-chat-text">{{x.text}}</div>
             </div>
         </div>
-        <div><input type="text" ng-model="cc.myMessage"><label>Write Something!</label></div>
-        <div ng-click="cc.sendMessage()" class="main-link">Send</div>
+        <div ng-if="cc.isNotUser(x.to)">
+            <div class="main-chat-left">
+                <div class="main-chat-time">{{x.dateTime}}</div>
+                <div class="main-chat-text">{{x.text}}</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout="column" layout-align="center end" class="chat-submit">
+    <mdinput-container>
+        <label>Write something!</label>
+        <input type="text" ng-model="cc.myMessage">
+    </mdinput-container>
+    <div ng-if="cc.isBot">
+        <md-button ng-click="cc.sendMessage()" ng-style="main.button">Send</md-button>
     </div>
     <div ng-if="cc.isNotBot">
-        <div ng-repeat="x in cc.chatHistory">
-            <div ng-if="cc.isUser(x.to)" class="chat-user">
-                <div>{{x.text}}</div>
-                <div>{{x.dateTime}}</div>
-            </div>
-            <div ng-if="cc.isNotUser(x.to)" class="chat-other">
-                <div> {{x.text}} </div>
-                <div>{{x.dateTime}}</div>
-            </div>
-        </div>
-        <div><input type="text" ng-model="cc.myMessage"><label>Write Something!</label></div>
-        <div ng-click="cc.sendUserMessage(cc.currUser.id)" class="main-link">Send</div>
+        <md-button ng-click="cc.sendUserMessage(cc.currUser.id)" ng-style="main.button">Send
     </div>
-
-
 </div>
 </body>
 </html>
