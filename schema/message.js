@@ -11,7 +11,8 @@ var MessageSchema = new mongoose.Schema({
     type: {type: String, required: true},
     dateTime: {type: Date, default: Date.now},
     text: String,
-    options: {type: [String], default: []}
+    options: {type: [String], default: []},
+    selectedOption: {type: Number, default: undefined}
 });
 
 var Messages = mongoose.model('Messages', MessageSchema);

@@ -180,6 +180,15 @@ div{
     margin-right: auto;
 }
 
+.main-chat-center{
+    box-shadow: 0 0 3px #ccc;
+    margin:5px;
+    padding:5px;
+    max-width: 40%;
+    margin-right: auto;
+    margin-left: auto;
+}
+
 .main-chat-time{
     margin:5px;
     font-size:10px;

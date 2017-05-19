@@ -2,7 +2,7 @@
  * Created by CodyWStocker on 5/10/17.
  */
 
-chatApp.controller('GroupChatController', ['$scope', '$location', '$resource', '$routeParams', function($scope,$location,$resource,$routeParams){
+chatApp.controller('GroupChatController', ['$scope', '$location', '$resource', '$routeParams', '$rootScope', function($scope,$location,$resource,$routeParams,$rootScope){
     $scope.gcc = {};
     $scope.gcc.idToMemberName = [];
     $scope.gcc.myMessage = "";
@@ -13,6 +13,16 @@ chatApp.controller('GroupChatController', ['$scope', '$location', '$resource', '
         }
         return false;
     };
+
+    $rootScope.$on('group message received', function(){
+        console.log('group message received in gcc');
+        $scope.makePage();
+    });
+
+    $rootScope.$on('bot group message received', function(){
+        console.log('bot group message received in gcc');
+        $scope.makePage();
+    });
 
     $scope.handleMessageError = function(err){
         console.log(err);

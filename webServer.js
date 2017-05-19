@@ -7,6 +7,13 @@ var express = require('express');
 var app = express();
 var session = require('express-session');
 var requestObj = require('request');
+var expressWs = require('express-ws')(app);
+var WebSocket = require('ws');
+var http = require('http');
+var url = require('url');
+
+var socketManager = require('./socketManager.js').socketManager();
+
 //app.use(session); //Below version is from code I wrote over the summer, do not remember totally what it does though
 //app.use(session({secret: 'secretKey', resave: false, saveUninitialized: false, cookie: {
 //    path: '/'
@@ -14,6 +21,30 @@ var requestObj = require('request');
 //    ,httpOnly: true
 //    //  ,domain:'.example.com'
 //}}));
+var clientIds = {};
+var idCounter = 0;
+
+var wss = new WebSocket.Server({
+    perMessageDeflate: false,
+    port: 3030
+});
+
+wss.on('connection', function connection(ws ,req){
+    const location = url.parse(req.url, true);
+    clientIds[idCounter] = ws;
+    idCounter += 1;
+    ws.send(idCounter - 1);
+
+});
+
+
+// app.ws('/', function(ws, req){
+//     ws.on('message', function(msg){
+//         console.log(msg);
+//         ws.send(msg);
+//     });
+// });
+
 app.use(session({
     secret: 'secretKey',
     cookie:{
@@ -201,6 +232,7 @@ app.post('/admin/registerBot', function(request, response){
 app.post('/admin/login', function(request, response){
     var username = request.body.user.username;
     var password = request.body.user.password;
+    var socketId = request.body.socketId;
     Users.findOne({email: username}, function(err, userObj){
         if(err){
             response.status(404).send(JSON.stringify({
@@ -223,6 +255,7 @@ app.post('/admin/login', function(request, response){
                     }));
                 }
                 else{
+                    socketManager.addId(socketId, userObj._id);
                     request.session.user = userObj; //may want to change this so it doesn't have the password?
                     var returnObj = {};
                     returnObj.name = userObj.firstName + " " + userObj.lastName;
@@ -330,6 +363,144 @@ app.post('/admin/register', function(request, response){
 
 //UTILITY POST FUNCTIONS
 
+app.post('/sendMCMessage', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 4 ||
+        typeof request.body.messageId !== 'string' ||
+        typeof request.body.botId !== 'string' ||
+        typeof request.body.answerNumber !== 'number' ||
+        typeof request.body.answer !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    Bots.findOne({_id: request.body.botId}, function(err, bot){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding bot"
+            }));
+            return;
+        }
+        else if(bot === null){
+            response.status(404).send(JSON.stringify({
+                statusCode:404,
+                message: "Invalid bot"
+            }));
+            return;
+        }
+        Messages.findOne({_id: request.body.messageId}, function(err, message){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding message"
+                }));
+                return;
+            }
+            else if(message === null){
+                response.status(404).send(JSON.stringify({
+                    statusCode:404,
+                    message:"Invalid message"
+                }));
+                return;
+            }
+            message.selectedOption = request.body.answerNumber;
+            message.save();
+            Messages.create({
+                to: bot._id,
+                from: request.session.user._id,
+                type: 'text',
+                text: request.body.answer
+            }, function(err, mess){
+                if(err){
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
+                        message:"Error creating message"
+                    }));
+                    return;
+                }
+                mess.id = mess._id;
+                mess.save();
+                var postData = {text: request.body.answer, userId: request.session.user.id, botId: request.body.botId, answerNumber: request.body.answerNumber};
+                var options = {
+                    body:postData,
+                    json: true,
+                    url: bot.url,
+                    timeout: 1500
+                };
+                requestObj.post(options, function(error, sResponse, body){
+                    if(error){
+                        if(error.code === 'ETIMEDOUT'){
+                            if(error.connect === true){
+                                response.status(500).send(JSON.stringify({
+                                    statusCode:500,
+                                    message:"Could not send message to bot"
+                                }));
+                                return;
+                            }
+                            response.status(200).send(JSON.stringify({
+                                sentMessage: true,
+                                receivedResponse: false
+                            }));
+                            return;
+                        }
+                        else{
+                            response.status(500).send(JSON.stringify({
+                                statusCode:500,
+                                message:"Error posting to bot"
+                            }));
+                            return;
+                        }
+                    }
+                    if(typeof body.type !== 'string' || (body.type !== 'text' && body.type !== 'mc')){
+                        response.status(400).send(JSON.stringify({
+                            statusCode:400,
+                            message:"Invalid bot response type"
+                        }));
+                        return;
+                    }
+                    if((body.type === 'text' && (typeof body.text !== 'string' || body.text.length < 1)) || (body.type === 'mc' && (typeof body.options === 'undefined' || body.options.length < 1))){
+                        response.status(400).send(JSON.stringify({
+                            statusCode:400,
+                            message:"Invalid bot response"
+                        }));
+                        return;
+                    }
+                    Messages.create({
+                        to: request.session.user.id,
+                        from: request.body.botId,
+                        type: body.type,
+                        text: body.text,
+                        options: body.options
+                    }, function(err, mess2){
+                        if(err){
+                            response.status(500).send(JSON.stringify({
+                                statusCode: 500,
+                                message: "Error creating bot message"
+                            }));
+                            return;
+                        }
+                        mess2.id = mess2._id;
+                        mess2.save();
+                        response.send(JSON.stringify({
+                            sentMessage: true,
+                            receivedResponse: true
+                        }));
+                    });
+                });
+            });
+        });
+    });
+});
+
 app.post('/sendUserUserMessage', function(request, response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
@@ -388,6 +559,22 @@ app.post('/sendUserUserMessage', function(request, response){
                         message:"Error creating message"
                     }));
                     return;
+                }
+                var data = 'update';
+                var clients = [];
+                var openSockets = socketManager.getSocketFromId(user2._id);
+                if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
+                    for(var idx in openSockets){
+                        clients.push(clientIds[openSockets[idx]]);
+                    }
+                }
+                if(clients.length !== 0){
+                    clients.forEach(function each(client){
+                        //will probably want to do more robust error checking here
+                        if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                            client.send('user message received');
+                        }
+                    });
                 }
                 message.id = message._id;
                 message.save();
@@ -653,6 +840,21 @@ app.post('/sendGroupMessage', function(request,response){
                 }
                 messObj.id = messObj._id;
                 messObj.save();
+                var clients = [];
+                // var openSockets = socketManager.getSocketFromId(user2._id);
+                var openSockets = socketManager.getSocketsFromIds(convo.userMembers);
+                if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
+                    for(var idx in openSockets){
+                        clients.push(clientIds[openSockets[idx]]);
+                    }
+                }
+                if(clients.length !== 0){
+                    clients.forEach(function each(client){
+                        if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                            client.send('group message received');
+                        }
+                    });
+                }
                 var postData = {text: request.body.text, userId: request.session.user.id, botId: bot.id};
                 var options = {
                     body:postData,
@@ -705,6 +907,13 @@ app.post('/sendGroupMessage', function(request,response){
                         }
                         newMessage.id = newMessage._id;
                         newMessage.save();
+                        if(clients.length !== 0){
+                            clients.forEach(function each(client){
+                                if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                                    client.send('group message received');
+                                }
+                            });
+                        }
                         response.send(JSON.stringify({
                             sentMessage: true,
                             receivedResponse: true
@@ -1494,10 +1703,20 @@ app.get('/conversation/:id', function(request, response){
         for(var idx=0; idx < messages.length; idx++){
             var currMessage = messages[idx];
             var newMessage = {};
-            newMessage.text = currMessage.text;
+            newMessage.type = currMessage.type;
+            if(currMessage.type === 'text'){
+                newMessage.text = currMessage.text;
+            }
+            else if(currMessage.type === 'mc'){
+                newMessage.options = currMessage.options;
+                if(typeof currMessage.selectedOption !== 'undefined'){
+                    newMessage.selectedOption = currMessage.selectedOption;
+                }
+            }
             newMessage.dateTime = currMessage.dateTime;
             newMessage.to = currMessage.to;
             newMessage.from = currMessage.from;
+            newMessage.id = currMessage.id;
             messageList.push(newMessage);
         }
         messageList.sort(function(a,b){
@@ -1741,6 +1960,21 @@ app.post('/botSendGroupMessage', function(request,response){
                 }
                 groupMess.id = groupMess._id;
                 groupMess.save();
+                var clients = [];
+                // var openSockets = socketManager.getSocketFromId(user2._id);
+                var openSockets = socketManager.getSocketsFromIds(convo.userMembers);
+                if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
+                    for(var idx in openSockets){
+                        clients.push(clientIds[openSockets[idx]]);
+                    }
+                }
+                if(clients.length !== 0){
+                    clients.forEach(function each(client){
+                        if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                            client.send('group message received');
+                        }
+                    });
+                }
                 response.send(JSON.stringify({
                     success:true
                 }));
@@ -1757,7 +1991,7 @@ app.post('/botSendMessage', function(request, response){
         }));
         return;
     }
-    if(Object.keys(request.body).length !== 4 || typeof request.body.type !== 'string' || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || (request.body.text === 'string' && typeof request.body.text !== 'string') || (request.body.type === 'mc' && typeof request.body.options !== 'undefined')){
+    if(Object.keys(request.body).length !== 4 || typeof request.body.type !== 'string' || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || (request.body.type === 'text' && typeof request.body.text !== 'string') || (request.body.type === 'mc' && typeof request.body.options !== 'undefined')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
             message:"Invalid arguments"
@@ -1810,7 +2044,21 @@ app.post('/botSendMessage', function(request, response){
                 }
                 mess.id = mess._id;
                 mess.save();
-                returnObj = {};
+                var clients = [];
+                var openSockets = socketManager.getSocketFromId(user._id);
+                if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
+                    for(var idx in openSockets){
+                        clients.push(clientIds[openSockets[idx]]);
+                    }
+                }
+                if(clients.length !== 0){
+                    clients.forEach(function each(client){
+                        if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                            client.send('user message received');
+                        }
+                    });
+                }
+                var returnObj = {};
                 returnObj.success = true;
                 response.send(JSON.stringify(returnObj));
             });

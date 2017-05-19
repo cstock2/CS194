@@ -56,7 +56,7 @@ function getData(){
         location: "Stanford",
         password: "weak",
         email: "cody",
-        currentBots: ["10"],
+        currentBots: ["10","12"],
         friends: ["2","6","4"],
         friendRequests: ["5"],
         pendingFriendRequests: ["7"]
@@ -112,6 +112,19 @@ function getData(){
         username: "dummy2",
         password: "dummy2"
     });
+    bots.push({
+        id: "12",
+        name: "mcbot",
+        url: 'http://localhost:6666',
+        description: "a basic multiple choice bot",
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: false,
+        birthdayPerm: true,
+        allPerm: false,
+        username: "mcbot",
+        password: "mcbot"
+    });
 
     var messages = [];
     messages.push({
@@ -161,6 +174,31 @@ function getData(){
         dateTime: new Date("2016-08-01 12:05 PDT"),
         text: "stop copying me",
         type: 'text'
+    });
+    messages.push({
+        id: "-1",
+        to: "1",
+        from: "12",
+        dateTime: new Date("2016-08-01 12:06 PDT"),
+        type: 'mc',
+        options: ['a','b','c','d'],
+        selectedOption: 0
+    });
+    messages.push({
+        id: "-2",
+        to: "12",
+        from: "1",
+        dateTime: new Date("2016-08-02 12:06 PDT"),
+        type: 'text',
+        text: 'a'
+    });
+    messages.push({
+        id: "-3",
+        to: "1",
+        from: "12",
+        dateTime: new Date("2016-08-02 12:10 PDT"),
+        type: 'mc',
+        options: ['e','f','g','h']
     });
     messages.push({
         id: "7",

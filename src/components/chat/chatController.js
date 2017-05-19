@@ -10,6 +10,8 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
     $scope.cc.isBot = false;
     $scope.cc.isNotBot = false;
 
+    $scope.cc.buttonSelected = {'background-color': 'lightgreen'};
+
     $scope.cc.isUser = function(recipient){
         if(recipient !== $scope.main.userId){
             return true;
@@ -48,12 +50,26 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
         return string;
     };
 
+    $rootScope.$on('user message received', function(){
+        console.log('user message received in chat controller');
+        $scope.makePage();
+    });
+
+    $rootScope.$on('bot message received', function(){
+        console.log('bot message received in chat controller');
+        $scope.makePage();
+    });
+
     $scope.handleMessageError = function(err){
         console.log(err);
         //We can probably do more here, but this would handle if there are problems with the database
     };
 
     $scope.handleUserMessageError = function(err){
+        console.log(err);
+    };
+
+    $scope.handleMCMessageError = function(err){
         console.log(err);
     };
 
@@ -65,10 +81,15 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
             var resource = $resource('/sendUserUserMessage');
             var data = resource.save(JSON.stringify(message2), function(err, returnObj){
                 if(returnObj !== null){
+                    $scope.cc.myMessage = "";
                     $scope.makePage();
                 }
             });
         }
+    };
+
+    $scope.cc.isSelected = function(index, parentIndex ,grandParentIndex){
+        return $scope.cc.chatHistory[grandParentIndex].selectedOption === (index + 2*parentIndex);
     };
 
     $scope.cc.sendMessage = function(){
@@ -85,10 +106,35 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                 });
             var data = resource.save(JSON.stringify(message), function(err, returnObj){
                 if(returnObj !== null){
+                    $scope.cc.myMessage = "";
                     $scope.makePage();
                 }
             });
         }
+    };
+
+    $scope.cc.sendOption = function(index1, index2){
+        var optionNumber = index1 + 2*index2;
+        var numChats = $scope.cc.chatHistory.length;
+        var currOptions = $scope.cc.chatHistory[numChats-1].options;
+        var answer = currOptions[optionNumber];
+        var message = {};
+        message.answer = answer;
+        message.botId = $scope.cc.currBot.id;
+        message.answerNumber = optionNumber;
+        message.messageId = $scope.cc.chatHistory[numChats-1].id;
+        var resource = $resource('/sendMCMessage', {}, {
+            'save': {
+                method: 'POST',
+                nterceptor: {responseError: $scope.handleMCMessageError}
+            }
+        });
+        var data = resource.save(JSON.stringify(message), function(err,returnObj){
+            if(returnObj !== null){
+                $scope.cc.myMessage = "";
+                $scope.makePage();
+            }
+        });
     };
 
 
@@ -110,7 +156,6 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                         var dateString = $scope.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;
                     }
-                    console.log($scope.cc.chatHistory);
                 });
             }
             else if(btr.type === 'bot'){
@@ -126,7 +171,17 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                         var currChat = $scope.cc.chatHistory[idx];
                         var dateString = $scope.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;
+                        if(currChat.type === 'mc'){
+                            var newOptions = [];
+                            var copyOptions = JSON.parse(JSON.stringify(currChat.options));
+                            while(copyOptions.length){
+                                newOptions.push(copyOptions.splice(0,2));
+                            }
+                            currChat.newOptions = newOptions;
+                        }
                     }
+                    var numChats = $scope.cc.chatHistory.length;
+                    $scope.cc.chatHistory[numChats-1].current = true;
                 });
             }
         });

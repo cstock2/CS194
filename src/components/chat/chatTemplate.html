@@ -20,9 +20,34 @@
             </div>
         </div>
         <div ng-if="cc.isNotUser(x.to)">
-            <div class="main-chat-left">
-                <div class="main-chat-time">{{x.dateTime}}</div>
-                <div class="main-chat-text">{{x.text}}</div>
+            <div ng-if="x.type === 'text'">
+                <div class="main-chat-left">
+                    <div class="main-chat-time">{{x.dateTime}}</div>
+                    <div class="main-chat-text">{{x.text}}</div>
+                </div>
+            </div>
+            <div ng-if="x.type === 'mc' && x.current">
+                <div class="main-chat-center">
+                    <div class="main-chat-time">{{x.dateTime}}</div>
+                    <div ng-repeat="y in x.newOptions">
+                        <div layout="row" layout-align="center center">
+                            <md-button ng-click="cc.sendOption($index, $parent.$index)" ng-style="main.button" ng-repeat="z in y">{{z}}</md-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="x.type === 'mc' && !x.current">
+                <div class="main-chat-left">
+                    <div class="main-chat-time">{{x.dateTime}}</div>
+                    <div ng-repeat="y in x.newOptions">
+                        <div layout="row" layout-align="start center">
+                            <div ng-repeat="z in y">
+                                <md-button ng-if="cc.isSelected($index, $parent.$index, $parent.$parent.$index)" ng-style="cc.buttonSelected">{{z}}</md-button>
+                                <md-button ng-if="!cc.isSelected($index, $parent.$index, $parent.$parent.$index)" ng-style="main.button">{{z}}</md-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -99,7 +99,7 @@ chatApp.controller('LoginRegisterController', ['$scope', '$location', '$resource
                     interceptor: {responseError: $scope.handleLoginError}
                 }
             });
-        var data = resource.save(JSON.stringify($scope.lrc), function(returnObj, err){
+        var data = resource.save(JSON.stringify({socketId: $scope.main.webSocketId, user: $scope.lrc.user}), function(returnObj, err){
             if(returnObj !== null){
                 $scope.main.username = returnObj.name;
                 $scope.main.loggedIn = true;

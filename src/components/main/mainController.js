@@ -1,7 +1,7 @@
 /**
  * Created by CodyWStocker on 4/8/17.
  */
-var chatApp = angular.module('chatApp', ['ngRoute', 'ngMaterial', 'ngResource']);
+var chatApp = angular.module('chatApp', ['ngRoute', 'ngMaterial', 'ngResource', 'ngWebSocket']);
 
 chatApp.config(['$routeProvider',
     function($routeProvider){
@@ -47,14 +47,56 @@ chatApp.config(['$routeProvider',
             });
     }]);
 
-chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$resource', function($scope, $rootScope, $location, $resource){
+chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$resource', '$websocket', function($scope, $rootScope, $location, $resource, $websocket){
     $scope.main = {};
     $scope.main.title = "Chat App";
     $scope.main.loggedIn = false;
+    $scope.main.webSocketId = "";
     $scope.main.userId = "";
     $scope.main.botRegistering = false;
     $scope.main.days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     $scope.main.months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    // $scope.main.webSocket = $websocket('ws://localhost:3030');
+    // console.log($scope.main.webSocket);
+    // console.log($websocket);
+    // var ws = $websocket('ws://localhost:3030');
+    // console.log(ws);
+    //
+    // ws.onOpen(function(){
+    //     console.log("opened");
+    // });
+    //
+    // ws.onMessage(function(message){
+    //     console.log("message: ", message);
+    // });
+    var socket = new WebSocket('ws://localhost:3030');
+
+    socket.addEventListener('open', function(event){
+        socket.send('Hello Server!');
+    });
+
+    socket.addEventListener('message', function(event){
+        console.log("Message from server: ", event.data);
+        $scope.main.webSocketId = event.data;
+        if(event.data === 'user message received'){
+            console.log('user message received in main controller');
+            $rootScope.$broadcast('user message received');
+        }
+        else if(event.data === 'group message received'){
+            $rootScope.$broadcast('group message received');
+        }
+        else if(event.data === 'bot group message received'){
+            $rootScope.$broadcast('bot group message received');
+        }
+        else if(event.data === 'bot message received'){
+            $rootScope.$broadcast('bot message received');
+        }
+    });
+
+    // $scope.main.webSocket.$on('$open', function(){
+    //     $scope.main.webSocket.$emit('message', 'hello');
+    // });
 
     $scope.main.margin = '5px';
     $scope.main.inputStyle = {'margin-top': $scope.main.margin, 'margin-bottom': $scope.main.margin, 'margin-right': $scope.main.margin, 'margin-left':$scope.main.margin};

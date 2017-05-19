@@ -123,7 +123,8 @@ Promise.all(removePromises).then(function(){
                             dateTime: message.dateTime,
                             type: message.type,
                             text: message.text,
-                            options: message.options
+                            options: message.options,
+                            selectedOption: message.selectedOption
                         }, function(err, messObj){
                             if(err){
                                 console.log("Error creating message: ", err);
