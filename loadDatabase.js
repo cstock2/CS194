@@ -16,8 +16,9 @@ var Bots = require('./schema/bot.js');
 var Messages = require('./schema/message.js');
 var GroupMessages = require('./schema/groupMessage.js');
 var GroupConversations = require('./schema/groupConversation.js');
+var Notifications = require('./schema/notification');
 
-var removePromises = [Bots.remove({}), Users.remove({}), Messages.remove({}), GroupMessages.remove({}), GroupConversations.remove({})];
+var removePromises = [Bots.remove({}), Users.remove({}), Messages.remove({}), GroupMessages.remove({}), GroupConversations.remove({}), Notifications.remove({})];
 
 Promise.all(removePromises).then(function(){
     var idToId = [];
@@ -82,7 +83,6 @@ Promise.all(removePromises).then(function(){
                 }
             });
         });
-        console.log("userPromises: ", userPromises);
         Promise.all(userPromises).then(function(){
             Users.find(function(err,users){
                 if(err){
@@ -182,8 +182,31 @@ Promise.all(removePromises).then(function(){
                                 });
                             });
                             Promise.all(multiPromises).then(function(){
-                                console.log("All done");
-                                mongoose.disconnect();
+                                var notificationModel = dataModel.notificationModel();
+                                var notifPromises = notificationModel.map(function(notification){
+                                    return Notifications.create({
+                                        id: notification.id,
+                                        to: idToId[notification.to],
+                                        text: notification.text,
+                                        action: notification.action,
+                                        relId: idToId[notification.relId],
+                                        seen: notification.seen
+                                    }, function(err, notifObj){
+                                        if(err){
+                                            console.log("Error making notification: ", err);
+                                        }
+                                        else{
+                                            idToId[notifObj.id] = notifObj._id;
+                                            notifObj.id = notifObj._id;
+                                            notifObj.save();
+                                            console.log("Added notification ", notifObj.text + " ::to ", notifObj.to);
+                                        }
+                                    });
+                                });
+                                Promise.all(notifPromises).then(function(){
+                                    console.log("All done");
+                                    mongoose.disconnect();
+                                });
                             });
                         });
                     });

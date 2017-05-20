@@ -21,8 +21,8 @@ var UserSchema = new mongoose.Schema({
     allAuthBots: {type: Array, default: []},
     currentBots: {type: Array, default: []},
     friends: {type: Array, default: []},
-    friendRequests: {type: Array, default: []},
-    pendingFriendRequests: {type: Array, default: []}
+    friendRequests: {type: Array, default: []}, //sent out requests
+    pendingFriendRequests: {type: Array, default: []} //received requests
 });
 
 var Users = mongoose.model('Users', UserSchema);

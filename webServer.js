@@ -14,13 +14,7 @@ var url = require('url');
 
 var socketManager = require('./socketManager.js').socketManager();
 
-//app.use(session); //Below version is from code I wrote over the summer, do not remember totally what it does though
-//app.use(session({secret: 'secretKey', resave: false, saveUninitialized: false, cookie: {
-//    path: '/'
-//    ,expires: false // Alive Until Browser Exits
-//    ,httpOnly: true
-//    //  ,domain:'.example.com'
-//}}));
+//webSocket setup
 var clientIds = {};
 var idCounter = 0;
 
@@ -36,14 +30,6 @@ wss.on('connection', function connection(ws ,req){
     ws.send(idCounter - 1);
 
 });
-
-
-// app.ws('/', function(ws, req){
-//     ws.on('message', function(msg){
-//         console.log(msg);
-//         ws.send(msg);
-//     });
-// });
 
 app.use(session({
     secret: 'secretKey',
@@ -64,6 +50,7 @@ var Bots = require('./schema/bot.js');
 var Messages = require('./schema/message.js');
 var GroupMessages = require('./schema/groupMessage.js');
 var GroupConversations = require('./schema/groupConversation.js');
+var Notifications = require('./schema/notification.js');
 
 //Utility things that are necessary
 var bodyParser = require("body-parser"); //getting rid of this will make it so you can't parse HTTP communication
@@ -363,6 +350,168 @@ app.post('/admin/register', function(request, response){
 
 //UTILITY POST FUNCTIONS
 
+app.post('/acceptFriendRequest', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 1 || typeof request.body.userId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    Users.findOne({id: request.session.user.id}, function(err, currUser){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding current user"
+            }));
+            return;
+        }
+        else if(currUser === null){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Invalid current user"
+            }));
+            return;
+        }
+        Users.findOne({id: request.body.userId}, function(err, reqUser){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return;
+            }
+            else if(reqUser === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid user"
+                }));
+                return;
+            }
+            var pendingIndex = currUser.pendingFriendRequests.indexOf(request.body.userId);
+            var frIndex = reqUser.friendRequests.indexOf(currUser.id);
+            if(pendingIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Not an active friend request"
+                }));
+                return;
+            }
+            if(frIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"User has not sent you a friend request"
+                }));
+                return;
+            }
+            currUser.pendingFriendRequests.splice(pendingIndex, 1);
+            reqUser.friendRequests.splice(frIndex, 1);
+            currUser.friends.push(reqUser._id);
+            reqUser.friends.push(currUser._id);
+            currUser.save();
+            reqUser.save();
+            Notifications.create({
+                to: reqUser._id,
+                text: currUser.firstName + " " + currUser.lastName + " has accepted your friend request",
+                action: 'visit user page',
+                relId: currUser._id
+            }, function(err, notifObj){
+                if(err){
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
+                        message:"Error creating notification"
+                    }));
+                    return;
+                }
+                notifObj.id = notifObj._id;
+                notifObj.save();
+                response.send(JSON.stringify({
+                    addedFriend: true
+                }));
+            });
+        });
+    });
+});
+
+app.post('/sendFriendRequest', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 1 || typeof request.body.userId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    Users.findOne({id: request.session.user.id}, function(err, currUser){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding current user"
+            }));
+            return;
+        }
+        else if(currUser === null){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Invalid current user"
+            }));
+            return;
+        }
+        Users.findOne({id: request.body.userId}, function(err, reqUser){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return;
+            }
+            else if(reqUser === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid user"
+                }));
+                return;
+            }
+            currUser.friendRequests.push(request.body.userId);
+            currUser.save();
+            reqUser.pendingFriendRequests.push(currUser.id);
+            reqUser.save();
+            Notifications.create({
+                to: reqUser._id,
+                text: currUser.firstName + " " + currUser.lastName + " has sent you a friend request",
+                action: 'friend request',
+                relId: currUser.id
+            }, function(err, notifObj){
+                if(err){
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
+                        message:"Error creating notification"
+                    }));
+                    return;
+                }
+                notifObj.id = notifObj._id;
+                notifObj.save();
+                response.send(JSON.stringify({
+                    requestSent: true
+                }));
+            });
+        });
+    });
+});
+
 app.post('/sendMCMessage', function(request,response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
@@ -573,6 +722,9 @@ app.post('/sendUserUserMessage', function(request, response){
                         //will probably want to do more robust error checking here
                         if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
                             client.send('user message received');
+                        }
+                        else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
+                            socketManager.removeId(client, user2._id);
                         }
                     });
                 }
@@ -845,6 +997,7 @@ app.post('/sendGroupMessage', function(request,response){
                 var openSockets = socketManager.getSocketsFromIds(convo.userMembers);
                 if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
                     for(var idx in openSockets){
+                        var currSocket = clientIds[openSockets[idx]];
                         clients.push(clientIds[openSockets[idx]]);
                     }
                 }
@@ -853,6 +1006,9 @@ app.post('/sendGroupMessage', function(request,response){
                         if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
                             client.send('group message received');
                         }
+                        // else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
+                        //     socketManager.removeId(client, user2._id);
+                        // }
                     });
                 }
                 var postData = {text: request.body.text, userId: request.session.user.id, botId: bot.id};
@@ -1018,6 +1174,68 @@ app.post('/makeGroup', function(request, response){
 
 
 //GET REQUESTS
+
+app.get('/friendType/:userId', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    Users.findOne({_id: request.session.user._id}, function(err, user){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message: "Error finding current user"
+            }));
+            return;
+        }
+        else if(user === null){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Current user invalid"
+            }));
+            return;
+        }
+        Users.findOne({_id: request.params.userId}, function(err,user2){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return;
+            }
+            else if(user2 === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid parameter"
+                }));
+                return;
+            }
+            if(user.friends.indexOf(user2.id) !== -1){
+                response.send(JSON.stringify({
+                    type: 'friend'
+                }));
+            }
+            else if(user.friendRequests.indexOf(user2.id) !== -1){
+                response.send(JSON.stringify({
+                    type: 'sent request'
+                }));
+            }
+            else if(user.pendingFriendRequests.indexOf(user2.id) !== -1){
+                response.send(JSON.stringify({
+                    type: 'pending request'
+                }));
+            }
+            else{
+                response.send(JSON.stringify({
+                    type: 'none'
+                }));
+            }
+        });
+    });
+});
 
 app.get('/groupConversation/:convoId', function(request,response){
     if(typeof request.session.user === 'undefined'){
@@ -2055,6 +2273,9 @@ app.post('/botSendMessage', function(request, response){
                     clients.forEach(function each(client){
                         if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
                             client.send('user message received');
+                        }
+                        else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
+                            socketManager.removeId(client, user._id); //need to apply this to group messages as well
                         }
                     });
                 }

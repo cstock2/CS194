@@ -72,6 +72,26 @@ function getData(){
         friendRequests: ["1"]
     });
 
+    var notifications = [];
+    notifications.push({
+        id: "1000",
+        to: "1",
+        dateTime: new Date("05-17-2017 01:00 PDT"),
+        text: "Friend Request from Daniel Schiferaw",
+        action: 'friend request',
+        relId: "5",
+        seen: false
+    });
+    notifications.push({
+        id: "1001",
+        to: "1",
+        dateTime: new Date("05-17-2017 00:00 PDT"),
+        text: "Welcome to Chat.IO",
+        action: "NONE",
+        relId: null,
+        seen: false
+    });
+
     var bots = [];
     bots.push({
         id: "10",
@@ -310,12 +330,17 @@ function getData(){
         return multiMessages;
     };
 
+    var notificationModel = function(){
+        return notifications;
+    };
+
     var logModels = {
         userModel: userModel,
         botModel: botModel,
         messageModel: messageModel,
         groupModel: groupModel,
-        multiModel: multiModel
+        multiModel: multiModel,
+        notificationModel: notificationModel
     };
 
     return logModels;
