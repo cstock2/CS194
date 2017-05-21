@@ -4044,8 +4044,8 @@ describe("Test Server APIs", function(){
                             var obj = JSON.parse(res.text);
                             assert.strictEqual(obj.notifs, true);
                             assert.strictEqual(obj.notifications.length, 2);
-                            assert.strictEqual(obj.notifications[0].text, 'goodbye');
-                            assert.strictEqual(obj.notifications[1].text, 'hello');
+                            assert.strictEqual(obj.notifications[0].text, 'hello');
+                            assert.strictEqual(obj.notifications[1].text, 'goodbye');
                             done();
                         });
                     });

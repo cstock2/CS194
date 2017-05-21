@@ -42,6 +42,10 @@ chatApp.config(['$routeProvider',
                 templateUrl: 'src/components/group-start/groupStartTemplate.html',
                 controller: 'GroupStartController'
             }).
+            when('/notifications',{
+                templateUrl: 'src/components/notifications/notificationTemplate.html',
+                controller: 'NotificationController'
+            }).
             otherwise({
                 redirectTo: '/login'
             });
@@ -57,19 +61,6 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     $scope.main.days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     $scope.main.months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-    // $scope.main.webSocket = $websocket('ws://localhost:3030');
-    // console.log($scope.main.webSocket);
-    // console.log($websocket);
-    // var ws = $websocket('ws://localhost:3030');
-    // console.log(ws);
-    //
-    // ws.onOpen(function(){
-    //     console.log("opened");
-    // });
-    //
-    // ws.onMessage(function(message){
-    //     console.log("message: ", message);
-    // });
     var socket = new WebSocket('ws://localhost:3030');
 
     socket.addEventListener('open', function(event){
@@ -113,6 +104,30 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
                 $scope.main.loggedIn = false;
             }
         });
+    };
+
+    $scope.main.formatDate = function(date){
+        var newDate = new Date(date);
+        var string = "";
+        string += newDate.getDate() + " ";
+        string += $scope.main.months[newDate.getMonth()] + " ";
+        string += newDate.getFullYear() + " ";
+        string += newDate.getHours() + ":";
+        var minutes = newDate.getMinutes();
+        if(minutes < 10){
+            string+= "0" + minutes + ":";
+        }
+        else{
+            string += minutes + ":"
+        }
+        var seconds = newDate.getSeconds();
+        if(seconds < 10){
+            string+="0"+seconds
+        }
+        else{
+            string+=seconds;
+        }
+        return string;
     };
 
     $scope.main.logout = function() {

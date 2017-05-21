@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="main-head">Notifications</div>
+<div class="notif-body">
+    <div ng-repeat="x in nc.notifications" layout="column" layout-align="center center">
+        <div ng-if="x.seen" class="notif-item-body">
+            <div class="notif-item-date">{{x.dateTime}}</div>
+            <div class="notif-item-text">{{x.text}}</div>
+        </div>
+        <div ng-if="!x.seen" class="notif-item-body-unseen">
+            <div class="notif-item-date">{{x.dateTime}}</div>
+            <div class="notif-item-text">{{x.text}}</div>
+        </div>
+</div>
+</div>
+</body>
+</html>

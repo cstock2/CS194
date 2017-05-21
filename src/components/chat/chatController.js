@@ -26,30 +26,6 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
         return false;
     };
 
-    $scope.formatDate = function(date){
-        var newDate = new Date(date);
-        var string = "";
-        string += newDate.getDate() + " ";
-        string += $scope.main.months[newDate.getMonth()] + " ";
-        string += newDate.getFullYear() + " ";
-        string += newDate.getHours() + ":";
-        var minutes = newDate.getMinutes();
-        if(minutes < 10){
-            string+= "0" + minutes + ":";
-        }
-        else{
-            string += minutes + ":"
-        }
-        var seconds = newDate.getSeconds();
-        if(seconds < 10){
-            string+="0"+seconds
-        }
-        else{
-            string+=seconds;
-        }
-        return string;
-    };
-
     $rootScope.$on('user message received', function(){
         console.log('user message received in chat controller');
         $scope.makePage();
@@ -153,7 +129,7 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                     $scope.cc.chatHistory = data2.chatHistory;
                     for(var idx in $scope.cc.chatHistory){
                         var currChat = $scope.cc.chatHistory[idx];
-                        var dateString = $scope.formatDate(currChat.dateTime);
+                        var dateString = $scope.main.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;
                     }
                 });
@@ -169,7 +145,7 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                     $scope.cc.chatHistory = data.chatHistory;
                     for(var idx in $scope.cc.chatHistory){
                         var currChat = $scope.cc.chatHistory[idx];
-                        var dateString = $scope.formatDate(currChat.dateTime);
+                        var dateString = $scope.main.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;
                         if(currChat.type === 'mc'){
                             var newOptions = [];

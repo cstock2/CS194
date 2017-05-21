@@ -2258,7 +2258,7 @@ app.get('/notifications/:type', function(request, response){
         }));
         return;
     }
-    var notifObj = {_id: request.session.user.id}; //this is the default for all
+    var notifObj = {to: request.session.user.id}; //this is the default for all
     if(request.params.type === 'pending'){
         notifObj.seen = false;
     }
@@ -2302,7 +2302,7 @@ app.get('/notifications/:type', function(request, response){
             });
         }
         returnNotifs.sort(function compare(a, b){
-            return a.dateTime > b.dateTime;
+            return a.dateTime < b.dateTime;
         });
         response.send(JSON.stringify({notifs: true, notifications: returnNotifs}));
     });

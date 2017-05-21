@@ -9,7 +9,7 @@
     <div class="main-head">Conversation with {{cc.currBot.name}}</div>
 </div>
 <div ng-if="cc.isNotBot">
-    <div class="main-head">Conversation with {{cc.currUser.fullName}}</div>
+    <div class="main-head">Conversation with {{cc.currUser.firstName}} {{cc.currUser.lastName}}</div>
 </div>
 <div class="chat-body">
     <div ng-repeat="x in cc.chatHistory">

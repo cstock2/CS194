@@ -187,6 +187,7 @@ Promise.all(removePromises).then(function(){
                                     return Notifications.create({
                                         id: notification.id,
                                         to: idToId[notification.to],
+                                        dateTime: notification.dateTime,
                                         text: notification.text,
                                         action: notification.action,
                                         relId: idToId[notification.relId],
