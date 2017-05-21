@@ -2001,6 +2001,458 @@ describe("Test Server APIs", function(){
                     });
                 });
             });
+            describe('decline friend request', function(){
+                var friendR = {userId: 'a'};
+                describe('failing cases', function(){
+                    describe('unauthorized', function(){
+                        it('returns 401 error', function(done){
+                            request(app).post('/declineFriendRequest').send({}).expect(401).end(function(err,res){
+                                assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid arguments', function(){
+                        it('returns 400 error', function(done){
+                            server.post('/declineFriendRequest').send({}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding current user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields({error: 'error'}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/declineFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding current user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid current user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/declineFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Invalid current user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {user: 'user'});
+                            stub.withArgs({id: "a"}).yields({error: 'error'},null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/declineFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {user: 'user'});
+                            stub.withArgs({id: "a"}).yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/declineFriendRequest').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('not valid friend request', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {pendingFriendRequests: [], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {friendRequests: [], save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/declineFriendRequest').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Not an active friend request"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('user has not sent friend request', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {pendingFriendRequests: ['a'], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {friendRequests: [], save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/declineFriendRequest').send(friendR).expect(400).end(function(Err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"User has not sent you a friend request"}');
+                                done();
+                            });
+                        });
+                    });
+                });
+                describe('passing case', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        var stub = sandbox.stub(Users, 'findOne');
+                        stub.withArgs({id: "u1"}).yields(null, {id: 'u1',pendingFriendRequests: ['a'], save:function fun(){}});
+                        stub.withArgs({id: "a"}).yields(null, {friendRequests: ['u1'], save:function fun(){}});
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns boolean', function(done){
+                        server.post('/declineFriendRequest').send(friendR).expect(400).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.success, true);
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('cancel friend request', function(){
+                var friendR = {userId: 'a'};
+                describe('failing cases', function(){
+                    describe('unauthorized', function(){
+                        it('returns 401 error', function(done){
+                            request(app).post('/cancelFriendRequest').send({}).expect(401).end(function(err,res){
+                                assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid arguments', function(){
+                        it('returns 400 error', function(done){
+                            server.post('/cancelFriendRequest').send({}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding current user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields({error: 'error'}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding current user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid current user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Invalid current user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {user: 'user'});
+                            stub.withArgs({id: "a"}).yields({error: 'error'},null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {user: 'user'});
+                            stub.withArgs({id: "a"}).yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('not active friend request', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {friendRequests: [], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {pendingFriendRequests: [], save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Not an active friend request"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('not sent friend request', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {friendRequests: ['a'], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {pendingFriendRequests: [], save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"You have not sent user a friend request"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error deleting notification', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {firstName: 'a', lastName: 'b', id:'u1',friendRequests: ['a'], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {pendingFriendRequests: ['u1'], save:function fun(){}});
+                            sandbox.stub(Notifications, 'remove').yields({writeConcernError: 'error'});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/cancelFriendRequest').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error deleting notification"}');
+                                done();
+                            });
+                        });
+                    });
+                });
+                describe('passing case', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        var stub = sandbox.stub(Users, 'findOne');
+                        stub.withArgs({id: "u1"}).yields(null, {firstName: 'a', lastName: 'b', id:'u1',friendRequests: ['a'], save:function fun(){}});
+                        stub.withArgs({id: "a"}).yields(null, {pendingFriendRequests: ['u1'], save:function fun(){}});
+                        sandbox.stub(Notifications, 'remove').yields({nRemoved: '1'});
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns proper boolean', function(done){
+                        server.post('/cancelFriendRequest').send(friendR).expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.success, true);
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('unfriend', function(){
+                var friendR = {userId: 'a'};
+                describe('failing cases', function(){
+                    describe('unauthorized', function(){
+                        it('returns 401 error', function(done){
+                            request(app).post('/unfriend').send({}).expect(401).end(function(err,res){
+                                assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid arguments', function(){
+                        it('returns 400 error', function(done){
+                            server.post('/unfriend').send({}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding current user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields({error: 'error'}, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/unfriend').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding current user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid current user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Users, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/unfriend').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Invalid current user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {user: 'user'});
+                            stub.withArgs({id: "a"}).yields({error: 'error'},null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/unfriend').send(friendR).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {user: 'user'});
+                            stub.withArgs({id: "a"}).yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/unfriend').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid user"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('not current friend', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {friends: [], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {friends: [], save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/unfriend').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Not a current friend"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('not friend of user', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            var stub = sandbox.stub(Users, 'findOne');
+                            stub.withArgs({id: "u1"}).yields(null, {friends: ['a'], save:function fun(){}});
+                            stub.withArgs({id: "a"}).yields(null, {friends: [], save:function fun(){}});
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/unfriend').send(friendR).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Not a current friend of user"}');
+                                done();
+                            });
+                        });
+                    });
+                });
+                describe('passing case', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        var stub = sandbox.stub(Users, 'findOne');
+                        stub.withArgs({id: "u1"}).yields(null, {id: 'u1', friends: ['a'], save:function fun(){}});
+                        stub.withArgs({id: "a"}).yields(null, {friends: ['u1'], save:function fun(){}});
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns proper boolean', function(done){
+                        server.post('/unfriend').send(friendR).expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.success, true);
+                            done();
+                        });
+                    });
+                });
+            });
         });
         describe('get requests', function(){
             describe('groupMessages', function(){

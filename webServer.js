@@ -350,6 +350,232 @@ app.post('/admin/register', function(request, response){
 
 //UTILITY POST FUNCTIONS
 
+app.post('/declineFriendRequest', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 1 || typeof request.body.userId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    Users.findOne({id: request.session.user.id}, function(err, currUser){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding current user"
+            }));
+            return;
+        }
+        else if(currUser === null){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Invalid current user"
+            }));
+            return;
+        }
+        Users.findOne({id: request.body.userId}, function(err, reqUser){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return;
+            }
+            else if(reqUser === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid user"
+                }));
+                return;
+            }
+            var pendingIndex = currUser.pendingFriendRequests.indexOf(request.body.userId);
+            var frIndex = reqUser.friendRequests.indexOf(currUser.id);
+            if(pendingIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Not an active friend request"
+                }));
+                return;
+            }
+            if(frIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"User has not sent you a friend request"
+                }));
+                return;
+            }
+            currUser.pendingFriendRequests.splice(pendingIndex, 1);
+            reqUser.friendRequests.splice(frIndex, 1);
+            currUser.save();
+            reqUser.save();
+            response.send(JSON.stringify({
+                success: true
+            }));
+        });
+    });
+});
+
+app.post('/cancelFriendRequest', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 1 || typeof request.body.userId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    Users.findOne({id: request.session.user.id}, function(err, currUser){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding current user"
+            }));
+            return;
+        }
+        else if(currUser === null){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Invalid current user"
+            }));
+            return;
+        }
+        Users.findOne({id: request.body.userId}, function(err, reqUser){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return;
+            }
+            else if(reqUser === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid user"
+                }));
+                return;
+            }
+            var frIndex = currUser.friendRequests.indexOf(request.body.userId);
+            var pendingIndex = reqUser.pendingFriendRequests.indexOf(currUser.id);
+            if(frIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Not an active friend request"
+                }));
+                return;
+            }
+            if(pendingIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"You have not sent user a friend request"
+                }));
+                return;
+            }
+            currUser.friendRequests.splice(frIndex, 1);
+            reqUser.pendingFriendRequests.splice(pendingIndex, 1);
+            currUser.save();
+            reqUser.save();
+            var text = currUser.firstName + " " + currUser.lastName + " has sent you a friend request";
+            Notifications.remove({to: reqUser.id, text: text, relId: currUser.id}, function(result){
+                if(result.writeConcernError){
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
+                        message:"Error deleting notification"
+                    }));
+                    return;
+                }
+                response.send(JSON.stringify({
+                    success: true
+                }));
+            });
+        });
+    });
+});
+
+app.post('/unfriend', function(request,response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 1 || typeof request.body.userId !== 'string'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    Users.findOne({id: request.session.user.id}, function(err, currUser){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding current user"
+            }));
+            return;
+        }
+        else if(currUser === null){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Invalid current user"
+            }));
+            return;
+        }
+        Users.findOne({id: request.body.userId}, function(err, reqUser){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding user"
+                }));
+                return;
+            }
+            else if(reqUser === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid user"
+                }));
+                return;
+            }
+            var frIndex = currUser.friends.indexOf(request.body.userId);
+            var frIndex2 = reqUser.friends.indexOf(currUser.id);
+            if(frIndex === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Not a current friend"
+                }));
+                return;
+            }
+            if(frIndex2 === -1){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Not a current friend of user"
+                }));
+                return;
+            }
+            currUser.friends.splice(frIndex, 1);
+            reqUser.friends.splice(frIndex2, 1);
+            currUser.save();
+            reqUser.save();
+            response.send(JSON.stringify({
+                success: true
+            }));
+        });
+    });
+});
+
 app.post('/seeNotifications', function(request, response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
