@@ -190,7 +190,8 @@ Promise.all(removePromises).then(function(){
                                         text: notification.text,
                                         action: notification.action,
                                         relId: idToId[notification.relId],
-                                        seen: notification.seen
+                                        seen: notification.seen,
+                                        type: notification.type
                                     }, function(err, notifObj){
                                         if(err){
                                             console.log("Error making notification: ", err);

@@ -80,7 +80,8 @@ function getData(){
         text: "Friend Request from Daniel Schiferaw",
         action: 'friend request',
         relId: "5",
-        seen: false
+        seen: false,
+        type: 'other'
     });
     notifications.push({
         id: "1001",
@@ -89,7 +90,8 @@ function getData(){
         text: "Welcome to Chat.IO",
         action: "NONE",
         relId: null,
-        seen: false
+        seen: false,
+        type: 'other'
     });
 
     var bots = [];

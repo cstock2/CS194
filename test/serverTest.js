@@ -3419,6 +3419,102 @@ describe("Test Server APIs", function(){
                 });
             });
         });
+        describe('notifications/:type', function(){
+            describe('failing cases', function(){
+                describe('unauthorized access', function(){
+                    it('returns 401 error', function(done){
+                        request(app).get('/notifications/bad').expect(401).end(function(err,res){
+                            assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                            done();
+                        });
+                    });
+                });
+                describe('invalid argument', function(){
+                    it('returns 400 error', function(done){
+                        server.get('/notifications/bad').expect(400).end(function(err,res){
+                            assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid argument"}');
+                            done();
+                        });
+                    });
+                });
+                describe('error finding notification', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Notifications, 'find').yields({error: 'error'},null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns 500 error', function(done){
+                        server.get('/notifications/all').expect(500).end(function(err,res){
+                            assert.strictEqual(res.text,'{"statusCode":500,"message":"Error finding notifications"}');
+                            done();
+                        });
+                    });
+                });
+            });
+            describe('passing cases', function(){
+                describe('no notifications', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Notifications, 'find').yields(null, null);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns boolean and no notifications', function(done){
+                        server.get('/notifications/all').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.notifs, false);
+                            assert.strictEqual(obj.notifications.length, 0);
+                            done();
+                        });
+                    });
+                });
+                describe('notifications', function(){
+                    var sandbox;
+                    var data = [];
+                    data.push({
+                        id: '1',
+                        dateTime: new Date("05-01-2017 01:00 PDT"),
+                        text: 'hello',
+                        action: 'yes',
+                        relId: '2',
+                        seen: false,
+                        type: 'other'
+                    });
+                    data.push({
+                        id: '2',
+                        dateTime: new Date("04-01-2017 01:00 PDT"),
+                        text: 'goodbye',
+                        action: 'no',
+                        relId: '3',
+                        seen: false,
+                        type: 'other'
+                    });
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Notifications, 'find').yields(null, data);
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns proper boolean and proper data', function(done){
+                        server.get('/notifications/all').expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.notifs, true);
+                            assert.strictEqual(obj.notifications.length, 2);
+                            assert.strictEqual(obj.notifications[0].text, 'goodbye');
+                            assert.strictEqual(obj.notifications[1].text, 'hello');
+                            done();
+                        });
+                    });
+                });
+
+            });
+        });
     });
     describe('bot utilities', function(){
         var cookie;

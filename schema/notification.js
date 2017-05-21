@@ -11,7 +11,8 @@ var NotificationSchema = new mongoose.Schema({
     text: String,
     action: String,
     relId: String,
-    seen: {type: Boolean, default: false}
+    seen: {type: Boolean, default: false},
+    type: {type: String, required: true}
 });
 
 var Notifications = mongoose.model('Notifications', NotificationSchema);

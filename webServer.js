@@ -421,7 +421,8 @@ app.post('/acceptFriendRequest', function(request,response){
                 to: reqUser._id,
                 text: currUser.firstName + " " + currUser.lastName + " has accepted your friend request",
                 action: 'visit user page',
-                relId: currUser._id
+                relId: currUser._id,
+                type: 'other'
             }, function(err, notifObj){
                 if(err){
                     response.status(500).send(JSON.stringify({
@@ -493,7 +494,8 @@ app.post('/sendFriendRequest', function(request, response){
                 to: reqUser._id,
                 text: currUser.firstName + " " + currUser.lastName + " has sent you a friend request",
                 action: 'friend request',
-                relId: currUser.id
+                relId: currUser.id,
+                type: 'other'
             }, function(err, notifObj){
                 if(err){
                     response.status(500).send(JSON.stringify({
@@ -1949,6 +1951,71 @@ app.get('/conversation/:id', function(request, response){
         var returnObj = {};
         returnObj.chatHistory = messageList;
         response.send(JSON.stringify(returnObj));
+    });
+});
+
+app.get('/notifications/:type', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message: "Unauthorized"
+        }));
+        return;
+    }
+    if(request.params.type !== 'all' && request.params.type !== 'pending' && request.params.type !== 'message' && request.params.type !== 'messagePending' && request.params.type !== 'other' && request.params.type !== 'otherPending'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid argument"
+        }));
+        return;
+    }
+    var notifObj = {_id: request.session.user.id}; //this is the default for all
+    if(request.params.type === 'pending'){
+        notifObj.seen = false;
+    }
+    else if(request.params.type === 'message'){
+        notifObj.type = 'message';
+    }
+    else if(request.params.type === 'messagePending'){
+        notifObj.type = 'message';
+        notifObj.seen = false;
+    }
+    else if(request.params.type === 'other'){
+        notifObj.type = 'other';
+    }
+    else{
+        notifObj.type = 'other';
+        notifObj.seen = false;
+    }
+    Notifications.find(notifObj, function(err, notifs){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding notifications"
+            }));
+            return;
+        }
+        if(notifs === null){
+            response.send(JSON.stringify({notifs: false, notifications: []}));
+            return;
+        }
+        var returnNotifs = [];
+        for(var idx in notifs){
+            var currNotif = notifs[idx];
+            returnNotifs.push({
+                id: currNotif.id,
+                dateTime: currNotif.dateTime,
+                text: currNotif.text,
+                action: currNotif.action,
+                relId: currNotif.relId,
+                seen: currNotif.seen,
+                type: currNotif.type
+            });
+        }
+        returnNotifs.sort(function compare(a, b){
+            return a.dateTime > b.dateTime;
+        });
+        response.send(JSON.stringify({notifs: true, notifications: returnNotifs}));
     });
 });
 
