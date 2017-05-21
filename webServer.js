@@ -350,6 +350,69 @@ app.post('/admin/register', function(request, response){
 
 //UTILITY POST FUNCTIONS
 
+app.post('/seeNotifications', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message:"Unauthorized"
+        }));
+        return;
+    }
+    if(Object.keys(request.body).length !== 1 || typeof request.body.notifications === 'undefined'){
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
+            message:"Invalid arguments"
+        }));
+        return;
+    }
+    var calls = [];
+    var errorInNotifications = false;
+    var badNotification = false;
+    request.body.notifications.forEach(function(notif, i){
+        calls.push(function(callback){
+            Notifications.findOne({id: notif}, function(err,notification){
+                if(err){
+                    errorInNotifications = true;
+                }
+                else if(notification === null){
+                    badNotification = true;
+                }
+                else{
+                    notification.seen = true;
+                    notification.save();
+                }
+                callback();
+            });
+        });
+    });
+    async.series(calls, function(err, result){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error in async"
+            }));
+            return;
+        }
+        else if(errorInNotifications){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding notification"
+            }));
+            return;
+        }
+        else if(badNotification){
+            response.status(400).send(JSON.stringify({
+                statusCode:400,
+                message:"Invalid notification"
+            }));
+            return;
+        }
+        response.send(JSON.stringify({
+            success: true
+        }));
+    });
+});
+
 app.post('/acceptFriendRequest', function(request,response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({

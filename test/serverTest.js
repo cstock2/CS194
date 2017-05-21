@@ -1915,6 +1915,92 @@ describe("Test Server APIs", function(){
                     });
                 });
             });
+            describe('seeNotifications', function(){
+                var data = {notifications: ['a', 'b',' c']};
+                describe('failing cases', function(){
+                    describe('unauthorized', function(){
+                        it('returns 401 error', function(done){
+                            request(app).post('/seeNotifications').send({}).expect(401).end(function(err,res){
+                                assert.strictEqual(res.text,'{"statusCode":401,"message":"Unauthorized"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid arguments', function(){
+                        it('returns 400 error', function(done){
+                            server.post('/seeNotifications').send({}).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid arguments"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error in async', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(async, 'series').yields({error: 'error'},null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/seeNotifications').send(data).expect(500).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error in async"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('error finding notification', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Notifications, 'findOne').yields({error: 'error'},null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 500 error', function(done){
+                            server.post('/seeNotifications').send(data).expect(500).end(function(Err,res){
+                                assert.strictEqual(res.text, '{"statusCode":500,"message":"Error finding notification"}');
+                                done();
+                            });
+                        });
+                    });
+                    describe('invalid notification', function(){
+                        var sandbox;
+                        before(function(){
+                            sandbox = sinon.sandbox.create();
+                            sandbox.stub(Notifications, 'findOne').yields(null, null);
+                        });
+                        after(function(){
+                            sandbox.restore();
+                        });
+                        it('returns 400 error', function(done){
+                            server.post('/seeNotifications').send(data).expect(400).end(function(err,res){
+                                assert.strictEqual(res.text, '{"statusCode":400,"message":"Invalid notification"}');
+                                done();
+                            });
+                        });
+                    });
+                });
+                describe('passing case', function(){
+                    var sandbox;
+                    before(function(){
+                        sandbox = sinon.sandbox.create();
+                        sandbox.stub(Notifications, 'findOne').yields(null, {seen: false, save: function fun(){}});
+                    });
+                    after(function(){
+                        sandbox.restore();
+                    });
+                    it('returns proper boolean', function(done){
+                        server.post('/seeNotifications').send(data).expect(200).end(function(err,res){
+                            var obj = JSON.parse(res.text);
+                            assert.strictEqual(obj.success, true);
+                            done();
+                        });
+                    });
+                });
+            });
         });
         describe('get requests', function(){
             describe('groupMessages', function(){
