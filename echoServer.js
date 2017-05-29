@@ -6,7 +6,6 @@ var express = require('express');
 var app = express();
 var bodyParser = require("body-parser"); //getting rid of this will make it so you can't parse HTTP communication
 var requestObj = require("request");
-var async = require('async');
 
 app.use(bodyParser.json());
 
@@ -25,7 +24,6 @@ var server = app.listen(5555, function () {
 });
 
 var login = function(callback){
-    console.log("Logging in");
     var postData = {username: username, password: password};
     var options = {
         body: postData,

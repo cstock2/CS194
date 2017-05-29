@@ -877,64 +877,82 @@ app.post('/sendMCMessage', function(request,response){
                     timeout: 1500
                 };
                 requestObj.post(options, function(error, sResponse, body){
+                    // if(error){
+                    //     if(error.code === 'ETIMEDOUT'){
+                    //         if(error.connect === true){
+                    //             response.status(500).send(JSON.stringify({
+                    //                 statusCode:500,
+                    //                 message:"Could not send message to bot"
+                    //             }));
+                    //             return;
+                    //         }
+                    //         response.status(200).send(JSON.stringify({
+                    //             sentMessage: true,
+                    //             receivedResponse: false
+                    //         }));
+                    //         return;
+                    //     }
+                    //     else{
+                    //         response.status(500).send(JSON.stringify({
+                    //             statusCode:500,
+                    //             message:"Error posting to bot"
+                    //         }));
+                    //         return;
+                    //     }
+                    // }
                     if(error){
-                        if(error.code === 'ETIMEDOUT'){
-                            if(error.connect === true){
-                                response.status(500).send(JSON.stringify({
-                                    statusCode:500,
-                                    message:"Could not send message to bot"
-                                }));
-                                return;
-                            }
-                            response.status(200).send(JSON.stringify({
-                                sentMessage: true,
-                                receivedResponse: false
-                            }));
-                            return;
-                        }
-                        else{
-                            response.status(500).send(JSON.stringify({
-                                statusCode:500,
-                                message:"Error posting to bot"
-                            }));
-                            return;
-                        }
-                    }
-                    if(typeof body.type !== 'string' || (body.type !== 'text' && body.type !== 'mc')){
-                        response.status(400).send(JSON.stringify({
-                            statusCode:400,
-                            message:"Invalid bot response type"
+                        response.status(500).send(JSON.stringify({
+                            statusCode:500,
+                            message:"Error posting to bot"
                         }));
                         return;
                     }
-                    if((body.type === 'text' && (typeof body.text !== 'string' || body.text.length < 1)) || (body.type === 'mc' && (typeof body.options === 'undefined' || body.options.length < 1))){
-                        response.status(400).send(JSON.stringify({
-                            statusCode:400,
+                    else if(body.message !== '--ACK--'){
+                        response.status(500).send(JSON.stringify({
+                            statusCode:500,
                             message:"Invalid bot response"
                         }));
                         return;
                     }
-                    Messages.create({
-                        to: request.session.user.id,
-                        from: request.body.botId,
-                        type: body.type,
-                        text: body.text,
-                        options: body.options
-                    }, function(err, mess2){
-                        if(err){
-                            response.status(500).send(JSON.stringify({
-                                statusCode: 500,
-                                message: "Error creating bot message"
-                            }));
-                            return;
-                        }
-                        mess2.id = mess2._id;
-                        mess2.save();
-                        response.send(JSON.stringify({
-                            sentMessage: true,
-                            receivedResponse: true
-                        }));
-                    });
+                    response.send(JSON.stringify({
+                        sentMessage: true,
+                        receivedResponse: true
+                    }));
+                    // if(typeof body.type !== 'string' || (body.type !== 'text' && body.type !== 'mc')){
+                    //     response.status(400).send(JSON.stringify({
+                    //         statusCode:400,
+                    //         message:"Invalid bot response type"
+                    //     }));
+                    //     return;
+                    // }
+                    // if((body.type === 'text' && (typeof body.text !== 'string' || body.text.length < 1)) || (body.type === 'mc' && (typeof body.options === 'undefined' || body.options.length < 1))){
+                    //     response.status(400).send(JSON.stringify({
+                    //         statusCode:400,
+                    //         message:"Invalid bot response"
+                    //     }));
+                    //     return;
+                    // }
+                    // Messages.create({
+                    //     to: request.session.user.id,
+                    //     from: request.body.botId,
+                    //     type: body.type,
+                    //     text: body.text,
+                    //     options: body.options
+                    // }, function(err, mess2){
+                    //     if(err){
+                    //         response.status(500).send(JSON.stringify({
+                    //             statusCode: 500,
+                    //             message: "Error creating bot message"
+                    //         }));
+                    //         return;
+                    //     }
+                    //     mess2.id = mess2._id;
+                    //     mess2.save();
+                    //     response.send(JSON.stringify({
+                    //         sentMessage: true,
+                    //         receivedResponse: true
+                    //     }));
+                    // });
                 });
             });
         });
@@ -1324,61 +1342,76 @@ app.post('/sendGroupMessage', function(request,response){
                 };
                 requestObj.post(options, function(error, sResponse, body){
                     if(error){
-                        if(error.code === 'ETIMEDOUT'){
-                            if(error.connect === true){
-                                response.status(404).send(JSON.stringify({
-                                    statusCode:404,
-                                    message:"Could not send message to bot"
-                                }));
-                                return;
-                            }
-                            response.status(200).send(JSON.stringify({
-                                sentMessage: true,
-                                receivedResponse: false
-                            }));
-                            return;
-                        }
-                        else{
-                            response.status(500).send(JSON.stringify({
-                                statusCode:500,
-                                message:"Error posting to bot"
-                            }));
-                            return;
-                        }
+                        response.status(500).send(JSON.stringify({
+                            statusCode:500,
+                            message:"Error posting to bot"
+                        }));
+                        return;
+                        // if(error.code === 'ETIMEDOUT'){
+                        //     if(error.connect === true){
+                        //         response.status(404).send(JSON.stringify({
+                        //             statusCode:404,
+                        //             message:"Could not send message to bot"
+                        //         }));
+                        //         return;
+                        //     }
+                        //     response.status(200).send(JSON.stringify({
+                        //         sentMessage: true,
+                        //         receivedResponse: false
+                        //     }));
+                        //     return;
+                        // }
+                        // else{
+                        //     response.status(500).send(JSON.stringify({
+                        //         statusCode:500,
+                        //         message:"Error posting to bot"
+                        //     }));
+                        //     return;
+                        // }
                     }
-                    if(typeof body.text !== 'string' || body.text.length < 1){
+                    else if(body.text !== "--ACK--"){
                         response.status(400).send(JSON.stringify({
                             statusCode:400,
                             message:"Invalid bot response"
                         }));
-                        return;
                     }
-                    GroupMessages.create({
-                        convoId: request.body.convoId,
-                        from: convo.botMember,
-                        text: body.text
-                    },function(err, newMessage){
-                        if(err){
-                            response.status(500).send(JSON.stringify({
-                                statusCode:500,
-                                message:"Error saving bot response"
-                            }));
-                            return;
-                        }
-                        newMessage.id = newMessage._id;
-                        newMessage.save();
-                        if(clients.length !== 0){
-                            clients.forEach(function each(client){
-                                if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
-                                    client.send('group message received');
-                                }
-                            });
-                        }
-                        response.send(JSON.stringify({
-                            sentMessage: true,
-                            receivedResponse: true
-                        }));
-                    });
+                    response.send(JSON.stringify({
+                        sentMessage: true,
+                        receivedResponse: true
+                    }));
+                    // if(typeof body.text !== 'string' || body.text.length < 1){
+                    //     response.status(400).send(JSON.stringify({
+                    //         statusCode:400,
+                    //         message:"Invalid bot response"
+                    //     }));
+                    //     return;
+                    // }
+                    // GroupMessages.create({
+                    //     convoId: request.body.convoId,
+                    //     from: convo.botMember,
+                    //     text: body.text
+                    // },function(err, newMessage){
+                    //     if(err){
+                    //         response.status(500).send(JSON.stringify({
+                    //             statusCode:500,
+                    //             message:"Error saving bot response"
+                    //         }));
+                    //         return;
+                    //     }
+                    //     newMessage.id = newMessage._id;
+                    //     newMessage.save();
+                    //     if(clients.length !== 0){
+                    //         clients.forEach(function each(client){
+                    //             if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                    //                 client.send('group message received');
+                    //             }
+                    //         });
+                    //     }
+                    //     response.send(JSON.stringify({
+                    //         sentMessage: true,
+                    //         receivedResponse: true
+                    //     }));
+                    // });
                 });
             });
         });
@@ -2580,6 +2613,8 @@ app.post('/botSendGroupMessage', function(request,response){
 });
 
 app.post('/botSendMessage', function(request, response){
+    console.log("BotSendMessage: ", request.body);
+    console.log("This should print");
     if(typeof request.session.botLogin === 'undefined'){
         response.status(401).send(JSON.stringify({
             statusCode:401,
@@ -2587,7 +2622,7 @@ app.post('/botSendMessage', function(request, response){
         }));
         return;
     }
-    if(Object.keys(request.body).length !== 4 || typeof request.body.type !== 'string' || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || (request.body.type === 'text' && typeof request.body.text !== 'string') || (request.body.type === 'mc' && typeof request.body.options !== 'undefined')){
+    if(Object.keys(request.body).length !== 4 || typeof request.body.type !== 'string' || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || (request.body.type === 'text' && typeof request.body.text !== 'string') || (request.body.type === 'mc' && typeof request.body.options === 'undefined')){
         response.status(404).send(JSON.stringify({
             statusCode:404,
             message:"Invalid arguments"
