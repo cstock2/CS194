@@ -18,7 +18,8 @@
     "promise": "^7.1.1",
     "request": ">1.0.0",
     "url": "^0.11.0",
-    "ws": "^3.0.0"
+    "ws": "^3.0.0",
+    "body-parser": "^1.15.2"
   },
   "devDependencies": {
     "angular": "^1.4.9",
@@ -28,7 +29,6 @@
     "angular-resource": "^1.5.8",
     "angular-route": "^1.6.0",
     "async": "^2.0.1",
-    "body-parser": "^1.15.2",
     "http": "0.0.0",
     "jshint": "^2.9.1-rc2",
     "mocha": "^3.0.0",
