@@ -46,6 +46,10 @@ chatApp.config(['$routeProvider',
                 templateUrl: 'src/components/notifications/notificationTemplate.html',
                 controller: 'NotificationController'
             }).
+            when('/userPage/:userId',{
+                templateUrl: 'src/components/user-page/userPageTemplate.html',
+                controller: 'UserPageController'
+            }).
             otherwise({
                 redirectTo: '/login'
             });

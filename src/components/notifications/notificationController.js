@@ -34,7 +34,7 @@ chatApp.controller('NotificationController', ['$scope', '$location', '$resource'
                 if(returnObj !== null){
                     $scope.nc.markedSeen = true; //will likely want to later get rid of notification alert
                 }
-            }); 
+            });
         });
     };
 

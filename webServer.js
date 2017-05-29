@@ -1160,65 +1160,78 @@ app.post('/sendMessage', function(request, response){
                 timeout: 1500
             };
             requestObj.post(options, function(error, sResponse, body){
-                if(error){
-                    if(error.code === 'ETIMEDOUT'){
-                        if(error.connect === true){
-                            response.status(404).send(JSON.stringify({
-                                statusCode:404,
-                                message:"Could not send message to bot"
-                            }));
-                            return;
-                        }
-                        response.status(200).send(JSON.stringify({
-                            sentMessage: true,
-                            receivedResponse: false
-                        }));
-                        return;
-                    }
-                    else{
+                if(error) {
+                    // if(error.code === 'ETIMEDOUT'){
+                    //     if(error.connect === true){
+                    //         response.status(404).send(JSON.stringify({
+                    //             statusCode:404,
+                    //             message:"Could not send message to bot"
+                    //         }));
+                    //         return;
+                    //     }
+                    //     response.status(200).send(JSON.stringify({
+                    //         sentMessage: true,
+                    //         receivedResponse: false
+                    //     }));
+                    //     return;
+                // }
+                    // else{
                         response.status(500).send(JSON.stringify({
                             statusCode:500,
                             message:"Error posting to bot"
                         }));
                         return;
-                    }
+
+                    // }
                 }
-                if(typeof body.type !== 'string' || (body.type !== 'text' && body.type !== 'mc')){
-                    response.status(400).send(JSON.stringify({
-                        statusCode:400,
-                        message:"Invalid bot response type"
+                else if(body.message !== "--ACK--"){
+                    response.status(500).send(JSON.stringify({
+                        statuscode:500,
+                        message: "Bad bot response"
                     }));
                     return;
                 }
-                if((body.type === 'text' && (typeof body.text !== 'string' || body.text.length < 1)) || (body.type === 'mc' && (typeof body.options === 'undefined' || body.options.length < 1))){
-                    response.status(400).send(JSON.stringify({
-                        statusCode:400,
-                        message:"Invalid bot response"
-                    }));
-                    return;
-                }
-                var responseMessage = body.text;
-                Messages.create({
-                    to: request.session.user.id,
-                    from: request.body.botId,
-                    type: body.type,
-                    text: body.text,
-                    options: body.options
-                }, function(err, mess2){
-                    if(err){
-                        response.status(500).send(JSON.stringify({
-                            statusCode: 500,
-                            message: "Error posting bot response"
-                        }));
-                        return;
-                    }
-                    mess2.id = mess2._id;
-                    mess2.save();
-                    response.send(JSON.stringify({
-                        sentMessage: true,
-                        receivedResponse: true
-                    }));
-                });
+                response.send(JSON.stringify({
+                    sentMessage: true,
+                    receivedResponse: true
+                }));
+
+                // if(typeof body.type !== 'string' || (body.type !== 'text' && body.type !== 'mc')){
+                //     response.status(400).send(JSON.stringify({
+                //         statusCode:400,
+                //         message:"Invalid bot response type"
+                //     }));
+                //     return;
+                // }
+                // if((body.type === 'text' && (typeof body.text !== 'string' || body.text.length < 1)) || (body.type === 'mc' && (typeof body.options === 'undefined' || body.options.length < 1))){
+                //     response.status(400).send(JSON.stringify({
+                //         statusCode:400,
+                //         message:"Invalid bot response"
+                //     }));
+                //     return;
+                // }
+                // var responseMessage = body.text;
+                // Messages.create({
+                //     to: request.session.user.id,
+                //     from: request.body.botId,
+                //     type: body.type,
+                //     text: body.text,
+                //     options: body.options
+                // }, function(err, mess2){
+                //     if(err){
+                //         response.status(500).send(JSON.stringify({
+                //             statusCode: 500,
+                //             message: "Error posting bot response"
+                //         }));
+                //         return;
+                //     }
+                //     mess2.id = mess2._id;
+                //     mess2.save();
+                //     response.send(JSON.stringify({
+                //         sentMessage: true,
+                //         receivedResponse: true
+                //     }));
+                // });
             });
         });
     });
@@ -2357,6 +2370,15 @@ app.get('/userConversation/:botId/:userId', function(request,response){
         returnObj.chatHistory = messageList;
         response.send(JSON.stringify(returnObj));
     });
+});
+
+app.get('/isBotSession', function(request, response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.send(JSON.stringify({result: 'false'}));
+    }
+    else{
+        response.send(JSON.stringify({result: 'true'}));
+    }
 });
 
 app.get('/userInfo/:botId/:userId/:type', function(request, response){
