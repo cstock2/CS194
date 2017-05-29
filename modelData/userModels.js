@@ -109,6 +109,18 @@ function getData(){
         password: "echoBot"
     });
     bots.push({
+        id: "german",
+        name: "German Bot",
+        url: 'https://www.beastweavers.com/germanbot',
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: false,
+        birthdayPerm: false,
+        allPerm: false,
+        username: "germanbot",
+        password: "germanbot1"
+    });
+    bots.push({
         id: "11",
         name: "dummy",
         url: 'http://localhost:5678', //PLEASE CHANGE THIS IF YOU USE THIS PORT

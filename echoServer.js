@@ -88,7 +88,7 @@ app.post('/', function(request, response){
     var options = {
         body:postData,
         json: true,
-        url: 'http://localhost:3002/botSendMessage',
+        url: relayServer + 'botSendMessage',
         timeout: 1500,
         jar: true
     };
