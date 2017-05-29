@@ -43,8 +43,18 @@ app.use(session({
 }));
 
 //MongoDB setup
+var uristring =
+    process.env.MONGOLAB_URI;
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/CS194V2');
+// mongoose.connect('mongodb://localhost/CS194V2');
+mongoose.connect(uristring, function(err, res){
+    if(err){
+        console.log("Error connecting to mongoose");
+    }
+    else{
+        console.log("Succeeding in connectiong to: ", uristring);
+    }
+});
 var Users = require('./schema/user.js');
 var Bots = require('./schema/bot.js');
 var Messages = require('./schema/message.js');
