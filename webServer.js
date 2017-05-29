@@ -49,6 +49,7 @@ app.use(session({
 var mongoose = require('mongoose');
 var uristring =
     process.env.MONGOLAB_URI ||
+    config.MONGOLAB_YELLOW_URL ||
     'mongodb://heroku_l7hxh8lr:ge6011hlouqhjq54h8agf0g04p@ds155841.mlab.com:55841/heroku_l7hxh8lr';
 console.log("uristring: ", uristring);
 mongoose.connect(uristring, function(err, res){
@@ -86,7 +87,8 @@ app.get('/', function(request, response){
 
 console.log("PROCESS", process);
 console.log("PROCESS.ENV", process.env);
-var port = process.env.port || 3002;
+console.log("CONFIG PORT, ", config.port);
+var port = config.port || 3002;
 console.log("PORT: ", port);
 
 var server = app.listen(port, function () {
