@@ -84,7 +84,7 @@ app.get('/', function(request, response){
     response.send('Simple webserver of files from ' + __dirname);
 });
 
-var server = app.listen(3002, function () {
+var server = app.listen(process.env.port || 3002, function () {
     var port = server.address().port;
     console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
 });
