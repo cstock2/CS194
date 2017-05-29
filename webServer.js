@@ -84,10 +84,12 @@ app.get('/', function(request, response){
     response.send('Simple webserver of files from ' + __dirname);
 });
 
+console.log("PROCESS", process);
+console.log("PROCESS.ENV", process.env);
 var port = process.env.port || 3002;
 console.log("PORT: ", port);
 
-var server = app.listen(process.env.port || 3002, function () {
+var server = app.listen(port, function () {
     var port = server.address().port;
     console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
 });
