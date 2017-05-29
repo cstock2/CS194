@@ -86,8 +86,8 @@ app.get('/', function(request, response){
 
 console.log("PROCESS", process);
 console.log("PROCESS.ENV", process.env);
-console.log("CONFIG PORT, ", config.port);
-var port = config.port || 3002;
+// console.log("CONFIG PORT, ", config.port);
+var port = process.env.port || 3002;
 console.log("PORT: ", port);
 
 var server = app.listen(port, function () {
