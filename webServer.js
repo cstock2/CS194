@@ -2613,8 +2613,6 @@ app.post('/botSendGroupMessage', function(request,response){
 });
 
 app.post('/botSendMessage', function(request, response){
-    console.log("BotSendMessage: ", request.body);
-    console.log("This should print");
     if(typeof request.session.botLogin === 'undefined'){
         response.status(401).send(JSON.stringify({
             statusCode:401,

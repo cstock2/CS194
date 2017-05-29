@@ -4,6 +4,9 @@
   "description": "A logging project",
   "main": "webServer.js",
   "license": "unlicensed",
+  "scripts": {
+    "start": "node webServer.js"
+  },
   "dependencies": {
     "angular-websocket": "^2.0.1",
     "chai": "^3.5.0",

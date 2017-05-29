@@ -63,12 +63,12 @@ var isLoggedIn = function(callback){
     var isLoggedInVar = false;
     requestObj.get(options, function(error, sResponse, body){
         if(error){
-            return false;
+            isLoggedInVar = false;
         }
         else{
             console.log("body: ", body);
             if(body.result === 'false'){
-                return false;
+                isLoggedInVar = false;
             }
             else{
                 isLoggedInVar = true;
