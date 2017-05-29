@@ -48,7 +48,8 @@ app.use(session({
 
 var mongoose = require('mongoose');
 var uristring =
-    process.env.MONGOLAB_URI;
+    process.env.MONGOLAB_URI ||
+    'mongodb://heroku_l7hxh8lr:ge6011hlouqhjq54h8agf0g04p@ds155841.mlab.com:55841/heroku_l7hxh8lr';
 console.log("uristring: ", uristring);
 mongoose.connect(uristring, function(err, res){
     if(err){
