@@ -14,6 +14,8 @@ var url = require('url');
 
 var socketManager = require('./socketManager.js').socketManager();
 
+app.set('port', (process.env.PORT || 5000));
+
 //webSocket setup
 var clientIds = {};
 var idCounter = 0;
@@ -78,21 +80,28 @@ app.use(express.static(__dirname));
 
 
 //echo bot goes here
-var echoBot = require("./echoBot.js");
+// var echoBot = require("./echoBot.js");
 
-app.get('/', function(request, response){
-    response.send('Simple webserver of files from ' + __dirname);
-});
+// app.get('/', function(request, response){
+//     response.send('Simple webserver of files from ' + __dirname);
+// });
+//
+// console.log("PROCESS", process);
+// console.log("PROCESS.ENV", process.env);
+// // console.log("CONFIG PORT, ", config.port);
+// var port = process.env.port || 3002;
+// console.log("PORT: ", port);
+//
+// var server = app.listen(port, function () {
+//     var port = server.address().port;
+//     console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
+// });
 
-console.log("PROCESS", process);
-console.log("PROCESS.ENV", process.env);
-// console.log("CONFIG PORT, ", config.port);
-var port = process.env.port || 3002;
-console.log("PORT: ", port);
-
-var server = app.listen(port, function () {
-    var port = server.address().port;
-    console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
+app.get('/', function(request, response) {
+    var result = 'App is running'
+    response.send(result);
+}).listen(app.get('port'), function() {
+    console.log('App is running, server is listening on port ', app.get('port'));
 });
 
 //ADMIN FUNCTIONS, REGISTERING
