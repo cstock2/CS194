@@ -13,9 +13,7 @@ var http = require('http');
 var https = require('https');
 var url = require('url');
 
-var httpsServer = https.createServer({
-    port: 3030
-}, function(){});
+var httpsServer = https.createServer({port: 3030}, function(){});
 
 var socketManager = require('./socketManager.js').socketManager();
 
@@ -30,8 +28,15 @@ var idCounter = 0;
 //     port: 3030,
 //     secure: true
 // });
-var wss = new WebSocket.Server({server: httpsServer, port: 3030, perMessageDeflate: false});
-
+var wss;
+if(process.env.PORT){
+    console.log("NON-LOCAL");
+    wss = new WebSocket.Server({server: httpsServer, perMessageDeflate:false});
+}
+else{
+    console.log("LOCAL");
+    wss = new WebSocket.Server({server: httpsServer, port: 3030, perMessageDeflate: false});
+}
 // var wss = new ws({
 //     server: httpsServer,
 //     port: 3030,
