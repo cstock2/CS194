@@ -10,7 +10,12 @@ var requestObj = require('request');
 var expressWs = require('express-ws')(app);
 var WebSocket = require('ws');
 var http = require('http');
+var https = require('https');
 var url = require('url');
+
+var httpsServer = https.createServer({
+    port: 3030
+}, function(){});
 
 var socketManager = require('./socketManager.js').socketManager();
 
@@ -20,11 +25,12 @@ app.set('port', (process.env.PORT || 3002));
 var clientIds = {};
 var idCounter = 0;
 
-var wss = new WebSocket.Server({
-    perMessageDeflate: false,
-    port: 3030,
-    secure: true
-});
+// var wss = new WebSocket.Server({
+//     perMessageDeflate: false,
+//     port: 3030,
+//     secure: true
+// });
+var wss = new WebSocket.Server({server: httpsServer, port: 3030, perMessageDeflate: false});
 
 // var wss = new ws({
 //     server: httpsServer,
