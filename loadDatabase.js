@@ -2,6 +2,7 @@
  * Created by CodyWStocker on 4/8/17.
  * Loads a database of mocked data
  */
+console.log("IN LOAD DATABASE");
 
 var dataModel = require('./modelData/userModels.js').getData();
 

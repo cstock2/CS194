@@ -1,7 +1,7 @@
 /**
  * Created by CodyWStocker on 4/8/17.
  */
-
+console.log("WEBSERVER");
 //Sets up the required components to make the server run
 var express = require('express');
 var app = express();
@@ -61,7 +61,6 @@ mongoose.connect(uristring, function(err, res){
         console.log("Succeeding in connectiong to: ", uristring);
     }
 });
-console.log("IN LOAD DATABASE");
 var Users = require('./schema/user.js');
 var Bots = require('./schema/bot.js');
 var Messages = require('./schema/message.js');
