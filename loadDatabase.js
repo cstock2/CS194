@@ -221,6 +221,8 @@ Promise.all(removePromises).then(function(){
                                 });
                                 Promise.all(notifPromises).then(function(){
                                     console.log("All done");
+                                    console.log("MONGO LAB URI");
+                                    console.log(process.env.MONGOLAB_YELLOW_URI);
                                     mongoose.disconnect();
                                 });
                             });
