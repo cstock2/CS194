@@ -47,13 +47,12 @@ app.use(session({
 //MongoDB setup
 // var mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost/CS194V2');
-console.log("MONGO LAB URI");
-console.log(process.env.MONGOLAB_YELLOW_URI);
+
 
 var mongoose = require('mongoose');
 var uristring =
     process.env.MONGOLAB_YELLOW_URI ||
-    'mongodb://heroku_l7hxh8lr:ge6011hlouqhjq54h8agf0g04p@ds155841.mlab.com:55841/heroku_l7hxh8lr';
+    'mongodb://localhost/CS194V2';
 console.log("uristring: ", uristring);
 mongoose.connect(uristring, function(err, res){
     if(err){
