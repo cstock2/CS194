@@ -6,6 +6,7 @@ function socketManager(){
     var userIdToSocket = {};
 
     var addId = function(socket, userId){
+        console.log("Socket: ", socket);
         if(typeof userIdToSocket[userId] !== 'undefined'){
             if(userIdToSocket[userId].indexOf(socket) !== -1){
                 userIdToSocket[userId].push(socket);
