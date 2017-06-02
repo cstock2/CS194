@@ -1050,6 +1050,7 @@ app.post('/sendUserUserMessage', function(request, response){
                 }
                 var data = 'update';
                 var clients = [];
+                console.log("clientIds: ", clientIds);
                 var openSockets = socketManager.getSocketFromId(user2._id);
                 if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
                     for(var idx in openSockets){
