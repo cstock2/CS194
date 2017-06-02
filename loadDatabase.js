@@ -10,7 +10,7 @@ var mongoose = require('mongoose');
 var Promise = require('promise');
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/CS194V2');
+// mongoose.create('mongodb://localhost/CS194V2');
 
 var uristring =
     process.env.MONGOLAB_URI ||
