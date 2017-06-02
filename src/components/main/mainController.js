@@ -65,7 +65,16 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     $scope.main.days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     $scope.main.months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-    var socket = new WebSocket('ws://localhost:3030');
+    var socket;
+    var baseurl = $location.host();
+    console.log("baseurl: ", $location.host());
+    if(baseurl === 'localhost'){
+        socket = new WebSocket('ws://localhost:3030');
+    }
+    else{
+        socket = new WebSocket('ws://' + baseurl + ":3030");
+
+    }
 
     socket.addEventListener('open', function(event){
         socket.send('Hello Server!');

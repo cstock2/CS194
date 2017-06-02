@@ -26,6 +26,7 @@ var wss = new WebSocket.Server({
 });
 
 wss.on('connection', function connection(ws ,req){
+    console.log("Connection received");
     const location = url.parse(req.url, true);
     clientIds[idCounter] = ws;
     idCounter += 1;
