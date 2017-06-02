@@ -22,8 +22,15 @@ var idCounter = 0;
 
 var wss = new WebSocket.Server({
     perMessageDeflate: false,
-    port: 3030
+    port: 3030,
+    secure: true
 });
+
+// var wss = new ws({
+//     server: httpsServer,
+//     port: 3030,
+//     perMessageDeflate: false,
+// });
 
 wss.on('connection', function connection(ws ,req){
     console.log("Connection received");
