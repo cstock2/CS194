@@ -9,18 +9,20 @@ var mongoose = require('mongoose');
 var Promise = require('promise');
 
 mongoose.Promise = global.Promise;
-// var uristring =
-//     process.env.MONGOLAB_URI;
-// var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/CS194V2');
-// mongoose.connect(uristring, function(err, res){
-//     if(err){
-//         console.log("Error connecting to mongoose");
-//     }
-//     else{
-//         console.log("Succeeding in connectiong to: ", uristring);
-//     }
-// });
+
+var uristring =
+    process.env.MONGOLAB_URI ||
+    'mongodb://heroku_l7hxh8lr:ge6011hlouqhjq54h8agf0g04p@ds155841.mlab.com:55841/heroku_l7hxh8lr';
+console.log("uristring: ", uristring);
+mongoose.connect(uristring, function(err, res){
+    if(err){
+        console.log("Error connecting to mongoose");
+    }
+    else{
+        console.log("Succeeding in connectiong to: ", uristring);
+    }
+});
 
 var Users = require('./schema/user.js');
 var Bots = require('./schema/bot.js');
