@@ -5,7 +5,7 @@
   "main": "webServer.js",
   "license": "unlicensed",
   "scripts": {
-    "start": "node loadDatabase.js; node webServer.js"
+    "start": "node loadDatabase.js"
   },
   "dependencies": {
     "angular": "^1.4.9",
