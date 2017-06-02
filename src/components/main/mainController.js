@@ -121,6 +121,11 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
         });
     };
 
+    // var wssResource = $resource('/webSocketServer');
+    // var wssData = wssResource.get(function(){
+    //     console.log("swssData", wssData);
+    // });
+
     $scope.main.formatDate = function(date){
         var newDate = new Date(date);
         var string = "";

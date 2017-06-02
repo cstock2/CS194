@@ -54,6 +54,8 @@ wss.on('connection', function connection(ws ,req){
 
 });
 
+console.log(wss);
+
 app.use(session({
     secret: 'secretKey',
     cookie:{
@@ -125,6 +127,10 @@ app.get('/', function(request, response) {
 }).listen(app.get('port'), function() {
     console.log('App is running, server is listening on port ', app.get('port'));
 });
+
+// app.get('/webSocketServer', function(request,response){
+//     response.send(JSON.stringify(wss));
+// });
 
 //ADMIN FUNCTIONS, REGISTERING
 
