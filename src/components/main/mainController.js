@@ -70,10 +70,12 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     console.log("baseurl: ", $location.host());
     if(baseurl === 'localhost'){
         socket = new WebSocket('ws://localhost:3030');
+        console.log("socket: ", socket);
     }
     else{
         // socket = new WebSocket('wss://' + baseurl + ":3030");
         socket =  new WebSocket('wss://' + baseurl);
+        console.log("socket: ", socket);
     }
 
     socket.addEventListener('open', function(event){
