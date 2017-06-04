@@ -76,13 +76,13 @@ function getData(){
         location: "Stanford",
         password: "weak",
         email: "cody",
-        currentBots: ["10","12",'13','german'],
+        currentBots: ["10","14",'13','german'],
         friends: ["2","6","4"],
         friendRequests: ["5"],
         pendingFriendRequests: ["7"],
-        basicAuthBots: ["10",'13','german'],
-        emailAuthBots: ["10",'13','german'],
-        birthdayAuthBots: ["10",'13'],
+        basicAuthBots: ["10",'13','german', '15'],
+        emailAuthBots: ["10",'13','german', '15'],
+        birthdayAuthBots: ["10",'13', '15'],
         locationAuthBots: ['13'],
         allAuthBots: ['13']
     });
@@ -142,7 +142,7 @@ function getData(){
     bots.push({
         id: "german",
         name: "German Bot",
-        url: 'https://www.beastweavers.com/germanbot',
+        url: 'https://www.beastweavers.com/germanbot/',
         basicPerm: true,
         emailPerm: true,
         locationPerm: false,
@@ -179,7 +179,7 @@ function getData(){
         password: "dummy2"
     });
     bots.push({
-        id: "12",
+        id: "14",
         name: "mcbot",
         url: 'http://localhost:6666',
         description: "a basic multiple choice bot",
@@ -203,6 +203,19 @@ function getData(){
         allPerm: true,
         username: "moviebot",
         password: "moviebot"
+    });
+    bots.push({
+        id: '15',
+        name: 'topicbot',
+        url: 'https://myseniorproject.herokuapp.com',
+        description: 'Testing topics',
+        basicPerm: true,
+        emailPerm: true,
+        locaitonPerm: false,
+        birthdayPerm: false,
+        allPerm: false,
+        username: 'topicbot',
+        password: 'topicbot'
     });
 
     var messages = [];

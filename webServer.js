@@ -9,8 +9,9 @@ var session = require('express-session');
 var requestObj = require('request');
 var expressWs = require('express-ws')(app);
 var WebSocket = require('ws');
-var http = require('http');
+var http = require('http').Server(app);
 var https = require('https');
+var io = require('socket.io')(http);
 var url = require('url');
 
 
@@ -36,8 +37,8 @@ if(process.env.PORT){
 }
 else{
     console.log("LOCAL");
-    httpsServer = https.createServer({port: 3030}, function(){});
-    wss = new WebSocket.Server({server: httpsServer, port: 3030, perMessageDeflate: false});
+    // httpsServer = https.createServer({port: 3030}, function(){});
+    // wss = new WebSocket.Server({server: httpsServer, port: 3030, perMessageDeflate: false});
 }
 // var wss = new ws({
 //     server: httpsServer,
@@ -45,16 +46,23 @@ else{
 //     perMessageDeflate: false,
 // });
 
-wss.on('connection', function connection(ws ,req){
+io.on('connection', function(socket){
     console.log("Connection received");
-    const location = url.parse(req.url, true);
-    clientIds[idCounter] = ws;
-    idCounter += 1;
-    ws.send(idCounter - 1);
-
+    socket.on('disconnect', function(){
+        console.log("User disconnected");
+    });
 });
 
-console.log(wss);
+// wss.on('connection', function connection(ws ,req){
+//     console.log("Connection received");
+//     const location = url.parse(req.url, true);
+//     clientIds[idCounter] = ws;
+//     idCounter += 1;
+//     ws.send(idCounter - 1);
+//
+// });
+//
+// console.log(wss);
 
 app.use(session({
     secret: 'secretKey',
@@ -1261,7 +1269,8 @@ app.post('/sendMessage', function(request, response){
                     // }
                 }
                 else if(body.message !== "--ACK--"){
-                    console.log("BAD BOT RESPONSE: ", body.message);
+                    console.log("SRESPONSe", sResponse);
+                    console.log("BAD BOT RESPONSE: ", body);
                     response.status(500).send(JSON.stringify({
                         statuscode:500,
                         message: "Bad bot response"
@@ -2491,7 +2500,7 @@ app.get('/whatPermissions/:userId', function(request, response){
         }
         else if(bot === null){
             response.status(400).send(JSON.stringinfy({
-                stautsCode:400,
+                statusCode:400,
                 message:"Invalid bot"
             }));
             return;
@@ -2538,6 +2547,50 @@ app.get('/whatPermissions/:userId', function(request, response){
     });
 });
 
+app.get('/botUsersInGroup/:convoId', function(request, response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message: "Unauthorized"
+        }));
+        return;
+    }
+    Bots.findOne({_id: request.session.botLogin._id}, function(err, bot){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message: "Error finding bot"
+            }));
+            return;
+        }
+        else if(bot === null){
+            response.status(400).send(JSON.stringify({
+                statusCode:400,
+                message:"Invalid bot"
+            }));
+            return;
+        }
+        GroupConversations.findOne({_id: request.params.convoId}, function(err, convo){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding conversation"
+                }));
+                return;
+            }
+            else if(convo === 'undefined'){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid conversation"
+                }));
+                return;
+            }
+            var users= JSON.parse(JSON.stringify(convo.userMembers));
+            response.send(JSON.stringify({userIds: users}));
+        });
+    });
+});
+
 app.get('/botUsers', function(request,response){
     if(typeof request.session.botLogin === 'undefined'){
         response.status(401).send(JSON.stringify({
@@ -2556,7 +2609,7 @@ app.get('/botUsers', function(request,response){
         }
         else if(bot === null){
             response.status(400).send(JSON.stringinfy({
-                stautsCode:400,
+                statusCode:400,
                 message:"Invalid bot"
             }));
             return;

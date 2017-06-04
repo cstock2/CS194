@@ -69,8 +69,9 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     var baseurl = $location.host();
     console.log("baseurl: ", $location.host());
     if(baseurl === 'localhost'){
-        socket = new WebSocket('ws://localhost:3030');
-        console.log("socket: ", socket);
+        // socket = new WebSocket('ws://localhost:3030');
+        // console.log("socket: ", socket);
+        // socket = io();
     }
     else{
         // socket = new WebSocket('wss://' + baseurl + ":3030");
@@ -78,27 +79,27 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
         console.log("socket: ", socket);
     }
 
-    socket.addEventListener('open', function(event){
-        socket.send('Hello Server!');
-    });
-
-    socket.addEventListener('message', function(event){
-        console.log("Message from server: ", event.data);
-        $scope.main.webSocketId = event.data;
-        if(event.data === 'user message received'){
-            console.log('user message received in main controller');
-            $rootScope.$broadcast('user message received');
-        }
-        else if(event.data === 'group message received'){
-            $rootScope.$broadcast('group message received');
-        }
-        else if(event.data === 'bot group message received'){
-            $rootScope.$broadcast('bot group message received');
-        }
-        else if(event.data === 'bot message received'){
-            $rootScope.$broadcast('bot message received');
-        }
-    });
+    // socket.addEventListener('open', function(event){
+    //     socket.send('Hello Server!');
+    // });
+    //
+    // socket.addEventListener('message', function(event){
+    //     console.log("Message from server: ", event.data);
+    //     $scope.main.webSocketId = event.data;
+    //     if(event.data === 'user message received'){
+    //         console.log('user message received in main controller');
+    //         $rootScope.$broadcast('user message received');
+    //     }
+    //     else if(event.data === 'group message received'){
+    //         $rootScope.$broadcast('group message received');
+    //     }
+    //     else if(event.data === 'bot group message received'){
+    //         $rootScope.$broadcast('bot group message received');
+    //     }
+    //     else if(event.data === 'bot message received'){
+    //         $rootScope.$broadcast('bot message received');
+    //     }
+    // });
 
     // $scope.main.webSocket.$on('$open', function(){
     //     $scope.main.webSocket.$emit('message', 'hello');

@@ -38,15 +38,18 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
 
     $scope.handleMessageError = function(err){
         console.log(err);
+        $scope.makePage();
         //We can probably do more here, but this would handle if there are problems with the database
     };
 
     $scope.handleUserMessageError = function(err){
         console.log(err);
+        $scope.makePage();
     };
 
     $scope.handleMCMessageError = function(err){
         console.log(err);
+        $scope.makePage();
     };
 
     $scope.cc.sendUserMessage = function(userId){
