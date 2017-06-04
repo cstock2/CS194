@@ -157,7 +157,9 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                         }
                     }
                     var numChats = $scope.cc.chatHistory.length;
-                    $scope.cc.chatHistory[numChats-1].current = true;
+                    if(numChats > 0){
+                        $scope.cc.chatHistory[numChats-1].current = true;
+                    }
                 });
             }
         });

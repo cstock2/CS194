@@ -67,10 +67,36 @@ Promise.all(removePromises).then(function(){
         var userModel = dataModel.userModel();
         var userPromises = userModel.map(function(user){
             //userIds.push(user.id);
+            var currentId;
             var newBotList = [];
             for(var idx in user.currentBots){
-                var currentId = user.currentBots[idx];
+                currentId = user.currentBots[idx];
                 newBotList.push(idToId[currentId]);
+            }
+            var basicBotList = [];
+            for(var idx2 in user.basicAuthBots){
+                currentId = user.basicAuthBots[idx2];
+                basicBotList.push(idToId[currentId]);
+            }
+            var emailBotList = [];
+            for(var idx3 in user.emailAuthBots){
+                currentId = user.emailAuthBots[idx3];
+                emailBotList.push(idToId[currentId]);
+            }
+            var locationBotList = [];
+            for(var idx4 in user.locationAuthBots){
+                currentId = user.locationAuthBots[idx4];
+                locationBotList.push(idToId[currentId]);
+            }
+            var birthdayBotList = [];
+            for(var idx5 in user.birthdayAuthBots){
+                currentId = user.birthdayAuthBots[idx5];
+                birthdayBotList.push(idToId[currentId]);
+            }
+            var allBotList = [];
+            for(var idx6 in user.allAuthBots){
+                currentId = user.allAuthBots[idx6];
+                allBotList.push(idToId[currentId]);
             }
             return Users.create({
                 id: user.id,
@@ -82,6 +108,11 @@ Promise.all(removePromises).then(function(){
                 birthday: user.birthday,
                 email: user.email,
                 currentBots: newBotList,
+                basicAuthBots: basicBotList,
+                emailAuthBots: emailBotList,
+                locationAuthBots: locationBotList,
+                birthdayAuthBots: birthdayBotList,
+                allAuthBots: allBotList,
                 friends: user.friends,
                 friendRequests: user.friendRequests,
                 pendingFriendRequests: user.pendingFriendRequests

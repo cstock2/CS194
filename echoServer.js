@@ -20,8 +20,27 @@ var server = app.listen(5555, function () {
     console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
     login(function(result){
         console.log("Logged in? ", result);
+        getUsers(function(users){
+            var firstUser = users[0];
+            console.log("Done checking users");
+            getUserPermissions(firstUser, function(permissions){
+                console.log("Done checking permissions");
+            });
+        });
     });
 });
+
+var getUserPermissions = function(userId, callback){
+    requestObj.get({json:true, url:relayServer + 'whatPermissions/' + userId, jar:true}, function(err, sResponse, body){
+        if(err){
+            console.log("err: ", err);
+        }
+        else{
+            console.log("Body from getPermissions: ", body);
+            callback(body.permissionList);
+        }
+    });
+};
 
 var login = function(callback){
     var postData = {username: username, password: password};
@@ -51,6 +70,18 @@ var login = function(callback){
             }
             callback(!loginError);
         });
+    });
+};
+
+var getUsers = function(callback){
+    requestObj.get({json:true, url:relayServer + 'botUsers', jar:true}, function(error, sResponse,body){
+        if(error){
+            console.log("Error");
+        }
+        else{
+            console.log("Body: ", body);
+            callback(body.users);
+        }
     });
 };
 

@@ -1261,6 +1261,7 @@ app.post('/sendMessage', function(request, response){
                     // }
                 }
                 else if(body.message !== "--ACK--"){
+                    console.log("BAD BOT RESPONSE: ", body.message);
                     response.status(500).send(JSON.stringify({
                         statuscode:500,
                         message: "Bad bot response"
@@ -2470,6 +2471,114 @@ app.get('/isBotSession', function(request, response){
     else{
         response.send(JSON.stringify({result: 'true'}));
     }
+});
+
+app.get('/whatPermissions/:userId', function(request, response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message: "Unauthorized"
+        }));
+        return;
+    }
+    Bots.findOne({_id: request.session.botLogin._id}, function(err, bot){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message: "Error finding bot"
+            }));
+            return;
+        }
+        else if(bot === null){
+            response.status(400).send(JSON.stringinfy({
+                stautsCode:400,
+                message:"Invalid bot"
+            }));
+            return;
+        }
+        Users.findOne({_id: request.params.userId}, function(err, user){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message: "Error finding bot"
+                }));
+                return;
+            }
+            else if(user === null){
+                response.status(400).send(JSON.stringinfy({
+                    stautsCode:400,
+                    message:"Invalid bot"
+                }));
+                return;
+            }
+            var botId = request.session.botLogin._id;
+            var basic = false;
+            var email = false;
+            var location = false;
+            var birthday = false;
+            var all = false;
+            console.log("USER: ", user);
+            if(user.basicAuthBots.indexOf(botId) !== -1){
+                basic = true;
+            }
+            if(user.emailAuthBots.indexOf(botId) !== -1){
+                email = true;
+            }
+            if(user.locationAuthBots.indexOf(botId) !== -1){
+                location = true;
+            }
+            if(user.birthdayAuthBots.indexOf(botId) !== -1){
+                birthday = true;
+            }
+            if(user.allAuthBots.indexOf(botId) !== -1){
+                all = true;
+            }
+            response.send(JSON.stringify({permissionList: {basic: basic, email: email, location:location,birthday:birthday,all:all}}));
+        });
+    });
+});
+
+app.get('/botUsers', function(request,response){
+    if(typeof request.session.botLogin === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message: "Unauthorized"
+        }));
+        return;
+    }
+    Bots.findOne({_id: request.session.botLogin._id}, function(err, bot){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message: "Error finding bot"
+            }));
+            return;
+        }
+        else if(bot === null){
+            response.status(400).send(JSON.stringinfy({
+                stautsCode:400,
+                message:"Invalid bot"
+            }));
+            return;
+        }
+        Users.find({}, function(err, users){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding users"
+                }));
+                return;
+            }
+            var userIds = [];
+            for(var idx in users){
+                var currUser = users[idx];
+                if(currUser.currentBots.indexOf(request.session.botLogin._id) !== -1){
+                    userIds.push(currUser._id);
+                }
+            }
+            response.send(JSON.stringify({users: userIds}));
+        });
+    });
 });
 
 app.get('/userInfo/:botId/:userId/:type', function(request, response){

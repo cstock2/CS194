@@ -14,7 +14,12 @@ function getData(){
         gender: "male",
         birthday: new Date("11-05-1995 00:00 PDT"),
         email: "codywstocker@hotmail.com",
-        friends: ["1"]
+        friends: ["1"],
+        basicAuthBots: ["10"],
+        emailAuthBots: ["10"],
+        birthdayAuthBots: ["10"],
+        locationAuthBots: [],
+        allAuthBots: []
     });
     users.push({
         id: "2",
@@ -24,7 +29,12 @@ function getData(){
         location: "Stanford, CA",
         password: "strong",
         email: "John",
-        friends: ["1"]
+        friends: ["1"],
+        basicAuthBots: ["10"],
+        emailAuthBots: ["10"],
+        birthdayAuthBots: ["10"],
+        locationAuthBots: [],
+        allAuthBots: []
     });
     users.push({
         id: "4",
@@ -35,7 +45,12 @@ function getData(){
         password: "strong",
         birthday: new Date("06-04-1976 00:00 PDT"),
         email: "eric",
-        friends: ["1"]
+        friends: ["1"],
+        basicAuthBots: ["10"],
+        emailAuthBots: ["10"],
+        birthdayAuthBots: ["10"],
+        locationAuthBots: [],
+        allAuthBots: []
     });
     users.push({
         id: "5",
@@ -46,7 +61,12 @@ function getData(){
         password: "weak",
         birthday: new Date("02-22-1723 10:00 PDT"),
         email: "dan",
-        pendingFriendRequests: ["1"]
+        pendingFriendRequests: ["1"],
+        basicAuthBots: ["10"],
+        emailAuthBots: ["10"],
+        birthdayAuthBots: ["10"],
+        locationAuthBots: [],
+        allAuthBots: []
     });
     users.push({
         id: "1",
@@ -56,10 +76,15 @@ function getData(){
         location: "Stanford",
         password: "weak",
         email: "cody",
-        currentBots: ["10","12"],
+        currentBots: ["10","12",'13','german'],
         friends: ["2","6","4"],
         friendRequests: ["5"],
-        pendingFriendRequests: ["7"]
+        pendingFriendRequests: ["7"],
+        basicAuthBots: ["10",'13','german'],
+        emailAuthBots: ["10",'13','german'],
+        birthdayAuthBots: ["10",'13'],
+        locationAuthBots: ['13'],
+        allAuthBots: ['13']
     });
     users.push({
         id: "7",
@@ -69,7 +94,13 @@ function getData(){
         location: "Stanford, CA",
         password: "password",
         email: "Jesus",
-        friendRequests: ["1"]
+        friendRequests: ["1"],
+        currentBots: ['10', '13'],
+        basicAuthBots: ["10", '13'],
+        emailAuthBots: ["10", '13'],
+        birthdayAuthBots: ["10", '13'],
+        locationAuthBots: [],
+        allAuthBots: []
     });
 
     var notifications = [];
@@ -159,6 +190,19 @@ function getData(){
         allPerm: false,
         username: "mcbot",
         password: "mcbot"
+    });
+    bots.push({
+        id: "13",
+        name: "moviebot",
+        url: 'https://www.beastweavers.com/moviebot',
+        description: "A bot that tells you waht movies to see",
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: true,
+        birthdayPerm: true,
+        allPerm: true,
+        username: "moviebot",
+        password: "moviebot"
     });
 
     var messages = [];
