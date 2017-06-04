@@ -10,7 +10,7 @@ var requestObj = require('request');
 var expressWs = require('express-ws')(app);
 var WebSocket = require('ws');
 var http = require('http').Server(app);
-var https = require('https');
+var https = require('https').Server(app);
 var io = require('socket.io')(http);
 var url = require('url');
 
@@ -38,7 +38,7 @@ if(process.env.PORT){
 else{
     console.log("LOCAL");
     // httpsServer = https.createServer({port: 3030}, function(){});
-    // wss = new WebSocket.Server({server: httpsServer, port: 3030, perMessageDeflate: false});
+    wss = new WebSocket.Server({server: https, port: 3030, perMessageDeflate: false});
 }
 // var wss = new ws({
 //     server: httpsServer,
