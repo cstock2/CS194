@@ -149,7 +149,7 @@ function getData(){
         birthdayPerm: false,
         allPerm: false,
         username: "germanbot",
-        password: "germanbot1",
+        password: "germanbot",
         description: "A bot that teaches German"
     });
     bots.push({
