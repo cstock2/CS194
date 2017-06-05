@@ -320,6 +320,7 @@ app.post('/admin/login', function(request, response){
 
 app.post('/admin/botLogin', function(request, response){
     console.log("Login request", request.body);
+    console.log("Login request", request.data);
     if(typeof request.body.username !=='string' || typeof request.body.password !== 'string'){
         response.status(400).send(JSON.stringify({
             statusCode:400,
