@@ -46,21 +46,20 @@ else{
 //     perMessageDeflate: false,
 // });
 
-io.on('connection', function(socket){
-    console.log("Connection received");
-    socket.on('disconnect', function(){
-        console.log("User disconnected");
-    });
-});
-
-// wss.on('connection', function connection(ws ,req){
+// io.on('connection', function(socket){
 //     console.log("Connection received");
-//     const location = url.parse(req.url, true);
-//     clientIds[idCounter] = ws;
-//     idCounter += 1;
-//     ws.send(idCounter - 1);
-//
+//     socket.on('disconnect', function(){
+//         console.log("User disconnected");
+//     });
 // });
+
+wss.on('connection', function connection(ws ,req){
+    console.log("Connection received");
+    const location = url.parse(req.url, true);
+    clientIds[idCounter] = ws;
+    idCounter += 1;
+    ws.send(idCounter - 1);
+});
 //
 // console.log(wss);
 
