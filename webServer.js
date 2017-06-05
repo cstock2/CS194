@@ -33,7 +33,7 @@ var httpsServer;
 if(process.env.PORT){
     console.log("NON-LOCAL");
     // httpsServer = https.createServer({}, function(){});
-    wss = new WebSocket.Server({server: https, port:3030, perMessageDeflate:false});
+    wss = new WebSocket.Server({server: https, perMessageDeflate:false});
 }
 else{
     console.log("LOCAL");
