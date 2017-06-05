@@ -69,13 +69,13 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     var baseurl = $location.host();
     console.log("baseurl: ", $location.host());
     if(baseurl === 'localhost'){
-        socket = new WebSocket('ws://localhost:3030');
+        socket = new WebSocket('wss://localhost:3030');
         console.log("socket: ", socket);
         // socket = io();
     }
     else{
         // socket = new WebSocket('wss://' + baseurl + ":3030");
-        socket =  new WebSocket('wss://' + baseurl);
+        socket =  new WebSocket('wss://' + baseurl + ":3030");
         console.log("socket: ", socket);
     }
 

@@ -76,13 +76,13 @@ function getData(){
         location: "Stanford",
         password: "weak",
         email: "cody",
-        currentBots: ["10","14",'13','german'],
+        currentBots: ["10","14",'13','german','16'],
         friends: ["2","6","4"],
         friendRequests: ["5"],
         pendingFriendRequests: ["7"],
-        basicAuthBots: ["10",'13','german', '15'],
-        emailAuthBots: ["10",'13','german', '15'],
-        birthdayAuthBots: ["10",'13', '15'],
+        basicAuthBots: ["10",'13','german', '15','16'],
+        emailAuthBots: ["10",'13','german', '15','16'],
+        birthdayAuthBots: ["10",'13', '15','16'],
         locationAuthBots: ['13'],
         allAuthBots: ['13']
     });
@@ -211,11 +211,24 @@ function getData(){
         description: 'Testing topics',
         basicPerm: true,
         emailPerm: true,
-        locaitonPerm: false,
+        locationPerm: false,
         birthdayPerm: false,
         allPerm: false,
         username: 'topicbot',
         password: 'topicbot'
+    });
+    bots.push({
+        id: '16',
+        name: 'teacherbot',
+        url: 'https://teacherbot194.herokuapp.com/teacherbot/',
+        description: 'A teacher bot',
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: false,
+        birthdayPerm: false,
+        allPerm: false,
+        username: 'teacherbot',
+        password: 'teacherbot'
     });
 
     var messages = [];
