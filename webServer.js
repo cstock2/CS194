@@ -8,12 +8,21 @@ var app = express();
 var session = require('express-session');
 var requestObj = require('request');
 var expressWs = require('express-ws')(app);
+var WebSocketServer = require('ws').Server;
 var WebSocket = require('ws');
 var http = require('http').Server(app);
-var https = require('https').Server(app);
+var https = require('https');
 var io = require('socket.io')(http);
 var url = require('url');
+var fs = require('fs');
 
+var privateKey  = fs.readFileSync('key.pem', 'utf8');
+var certificate = fs.readFileSync('cert.pem', 'utf8');
+
+var credentials = {key: privateKey, cert: certificate};
+
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(8443);
 
 var socketManager = require('./socketManager.js').socketManager();
 
@@ -29,16 +38,15 @@ var idCounter = 0;
 //     secure: true
 // });
 var wss;
-var httpsServer;
 if(process.env.PORT){
     console.log("NON-LOCAL");
     // httpsServer = https.createServer({}, function(){});
-    wss = new WebSocket.Server({server: https, perMessageDeflate:false});
+    wss = new WebSocketServer({server: httpsServer});
 }
 else{
     console.log("LOCAL");
     // httpsServer = https.createServer({port: 3030}, function(){});
-    wss = new WebSocket.Server({server: https, port: 3030, perMessageDeflate: false});
+    wss = new WebSocketServer({server: httpsServer, perMessageDeflate: false});
 }
 // var wss = new ws({
 //     server: httpsServer,
