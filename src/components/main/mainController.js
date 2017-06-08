@@ -75,7 +75,7 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     }
     else{
         // socket = new WebSocket('wss://' + baseurl + ":3030");
-        socket =  new WebSocket('wss://' + baseurl + ":8443");
+        socket =  new WebSocket('ws://' + baseurl + ":8443");
         console.log("socket: ", socket);
     }
 
