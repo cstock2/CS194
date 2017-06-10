@@ -230,6 +230,19 @@ function getData(){
         username: 'teacherbot',
         password: 'teacherbot'
     });
+    bots.push({
+        id: '17',
+        name: 'convobot',
+        url: '',
+        description: 'A conversational bot',
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: false,
+        birthdayPerm: false,
+        allPerm: false,
+        username: 'convobot',
+        password: 'convobot'
+    });
 
     var messages = [];
     messages.push({

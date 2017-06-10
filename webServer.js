@@ -10,23 +10,38 @@ var requestObj = require('request');
 var expressWs = require('express-ws')(app);
 var WebSocketServer = require('ws').Server;
 var WebSocket = require('ws');
-var http = require('http').Server(app);
+
 var https = require('https');
-var io = require('socket.io')(http);
 var url = require('url');
 var fs = require('fs');
+
+// var ngrok = require('ngrok');
+// ngrok.connect({
+//     proto: 'http', // http|tcp|tls
+//     addr: 3030 // port or network address
+// }, function (err, url) {});
 
 var privateKey  = fs.readFileSync('key.pem', 'utf8');
 var certificate = fs.readFileSync('cert.pem', 'utf8');
 
 var credentials = {key: privateKey, cert: certificate};
 
-var httpsServer = https.createServer(credentials, app);
-httpsServer.listen(8443);
+// var httpsServer = https.createServer(credentials, app);
+// httpsServer.listen(8443);
 
 var socketManager = require('./socketManager.js').socketManager();
 
-app.set('port', (process.env.PORT || 3002));
+// app.set('port', (process.env.PORT || 3002));
+
+var http = require('http').Server(app);
+// console.log("http: ", http);
+var io = require('socket.io')(http);
+// console.log("IO");
+// console.log(io);
+
+http.listen(3002, function(){
+    console.log("STARTING HTTP SERVER");
+});
 
 //webSocket setup
 var clientIds = {};
@@ -40,13 +55,37 @@ var idCounter = 0;
 var wss;
 if(process.env.PORT){
     console.log("NON-LOCAL");
-    // httpsServer = https.createServer({}, function(){});
+
     wss = new WebSocketServer({server: httpsServer});
+    wss.on('connection', function connection(ws ,req){
+        console.log("Connection received");
+        const location = url.parse(req.url, true);
+        clientIds[idCounter] = ws;
+        idCounter += 1;
+        ws.send(idCounter - 1);
+    });
 }
 else{
     console.log("LOCAL");
+    // httpsServer = https.createServer({}, function(){});
+    // wss = new WebSocket.Server({
+    //     perMessageDeflate: false,
+    //     port: 3002,
+    //     secure: true
+    // });
+    io.on('connection', function(socket){
+        console.log("Connection received");
+        clientIds[idCounter] = socket;
+        idCounter += 1;
+        // console.log("SOCKET:", socket);
+        socket.emit('news', {message: 'register', number: idCounter - 1});
+        // socket.on('chat message', function(msg){
+        //     io.emit('chat message', msg);
+        // });
+    });
+    // wss = new WebSocketServer({server: http})
     // httpsServer = https.createServer({port: 3030}, function(){});
-    wss = new WebSocketServer({server: httpsServer, perMessageDeflate: false});
+    // wss = new WebSocketServer({server: httpsServer, perMessageDeflate: false});
 }
 // var wss = new ws({
 //     server: httpsServer,
@@ -61,13 +100,7 @@ else{
 //     });
 // });
 
-wss.on('connection', function connection(ws ,req){
-    console.log("Connection received");
-    const location = url.parse(req.url, true);
-    clientIds[idCounter] = ws;
-    idCounter += 1;
-    ws.send(idCounter - 1);
-});
+
 //
 // console.log(wss);
 
@@ -164,6 +197,10 @@ app.get('/admin/getSession', function(request,response){
             id: request.session.user.id
         }));
     }
+});
+
+app.get('/admin/getsocketserver', function(request, response){
+
 });
 
 //has not been unit tested
@@ -289,6 +326,7 @@ app.post('/admin/registerBot', function(request, response){
 });
 
 app.post('/admin/login', function(request, response){
+    console.log("Got login request");
     var username = request.body.user.username;
     var password = request.body.user.password;
     var socketId = request.body.socketId;
@@ -1094,22 +1132,27 @@ app.post('/sendUserUserMessage', function(request, response){
                 }
                 var data = 'update';
                 var clients = [];
-                console.log("clientIds: ", clientIds);
+                // console.log("clientIds: ", clientIds);
                 var openSockets = socketManager.getSocketFromId(user2._id);
                 if(typeof openSockets !== 'undefined' && openSockets.length !== 0){
                     for(var idx in openSockets){
                         clients.push(clientIds[openSockets[idx]]);
                     }
                 }
+                console.log("ABOUT TO SEND CLIENT MESSAGES");
+                console.log("clients.length", clients.length);
                 if(clients.length !== 0){
                     clients.forEach(function each(client){
                         //will probably want to do more robust error checking here
-                        if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
-                            client.send('user message received');
-                        }
-                        else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
-                            socketManager.removeId(client, user2._id);
-                        }
+                        client.emit('news', {message: 'user message received'});
+                        // if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                        //     console.log("EMITTING A MESSAGE");
+                        //     console.log("CLIENT: ", client.emit);
+                        //     client.emit('news', {message: 'user message received'});
+                        // }
+                        // else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
+                        //     socketManager.removeId(client, user2._id);
+                        // }
                     });
                 }
                 message.id = message._id;
@@ -1403,7 +1446,8 @@ app.post('/sendGroupMessage', function(request,response){
                 if(clients.length !== 0){
                     clients.forEach(function each(client){
                         if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
-                            client.send('group message received');
+                            // client.send('group message received');
+                            client.emit('news', {message: 'group message received'});
                         }
                         // else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
                         //     socketManager.removeId(client, user2._id);
@@ -2829,7 +2873,8 @@ app.post('/botSendGroupMessage', function(request,response){
                 if(clients.length !== 0){
                     clients.forEach(function each(client){
                         if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
-                            client.send('group message received');
+                            // client.send('group message received');
+                            client.emit('news', {message: 'group message received'});
                         }
                     });
                 }
@@ -2912,7 +2957,8 @@ app.post('/botSendMessage', function(request, response){
                 if(clients.length !== 0){
                     clients.forEach(function each(client){
                         if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
-                            client.send('user message received');
+                            // client.send('user message received');
+                            client.emit('news', {message: 'user message received'});
                         }
                         else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
                             socketManager.removeId(client, user._id); //need to apply this to group messages as well

@@ -25,6 +25,7 @@
     "https": "^1.0.0",
     "mongodb": "^2.2.27",
     "mongoose": "^4.5.7",
+    "ngrok": "^2.2.9",
     "promise": "^7.1.1",
     "request": ">1.0.0",
     "socket.io": "^2.0.2",
