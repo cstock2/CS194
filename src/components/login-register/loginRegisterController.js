@@ -110,6 +110,12 @@ chatApp.controller('LoginRegisterController', ['$scope', '$location', '$resource
         });
     };
 
+    $scope.handleEvent = function(event){
+        if(event.keyCode === 13){
+            $scope.login();
+        }
+    };
+
     $scope.register = function(){
         if($scope.lrc.newUser.firstName === "" || $scope.lrc.newUser.lastName === "" || $scope.lrc.newUser.location === "" || $scope.lrc.newUser.gender === "" || $scope.lrc.emailAddress === "" || $scope.lrc.birthday === {} || $scope.lrc.password1 === "" || $scope.lrc.password2 === ""){
             $scope.lrc.detailLack = true;

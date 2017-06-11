@@ -2,9 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
 </head>
 <body>
+    <div class="main-title">{{upc.user.firstName}} {{upc.user.lastName}}</div>
+    <div ng-if="upc.friend" layout="column" layout-align="center center">
+        <md-button ng-click="goToConvo()" ng-style ="main.button">Talk to {{upc.user.firstName}}</md-button>
+    </div>
+    <div ng-if="upc.none" layout="column" layout-align="center center">
+        <md-button ng-click="sendFriendRequest()" ng-style ="main.button">Send Friend Request</md-button>
+    </div>
+    <div ng-if="upc.pendingFriend" layout="column" layout-align="center center">
+        <md-button ng-click="cancelFriendRequest()" ng-style ="main.button">Cancel Friend Request</md-button>
+    </div>
+    <div ng-if="upc.friendRequest" layout="column" layout-align="center center" >
+        <md-button ng-click="acceptFriendRequest()" ng-style ="main.button">Accept Friend Request</md-button>
+        <md-button ng-click="declineFriendRequest()" ng-style ="main.button">Decline Friend Request</md-button>
+    </div>
+    <div ng-if="upc.friend" layout="column" layout-align="center center">
+        <md-button ng-click="unfriend()" ng-style ="main.button">Unfriend</md-button>
+    </div>
 
 </body>
 </html>

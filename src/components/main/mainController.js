@@ -50,6 +50,10 @@ chatApp.config(['$routeProvider',
                 templateUrl: 'src/components/user-page/userPageTemplate.html',
                 controller: 'UserPageController'
             }).
+            when('/userExploration', {
+                templateUrl: 'src/components/user-exploration/UserNavTemplate.html',
+                controller: 'UserNavController'
+            }).
             otherwise({
                 redirectTo: '/login'
             });
@@ -69,7 +73,8 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
     var baseurl = $location.host();
     console.log("baseurl: ", $location.host());
     if(baseurl === 'localhost'){
-        socket = new WebSocket('ws://localhost:3030');
+        // socket = new WebSocket('ws://localhost:3030');
+        socket = io();
         // socket = new WebSocket('ws://localhost:8443');
         // console.log("socket: ", socket);
         // socket = io();
@@ -79,7 +84,7 @@ chatApp.controller('MainController', ['$scope', '$rootScope', '$location','$reso
         var sockUrl = 'ws://' + baseurl + ":3030";
         console.log("SockURL: ", sockUrl);
         // socket = io(sockUrl);
-        socket = io()
+        socket = io();
         console.log("socket: ", socket);
         // socket =  new WebSocket('wss://' + baseurl + ":8443");
         // console.log("socket: ", socket);

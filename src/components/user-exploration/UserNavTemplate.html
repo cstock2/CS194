@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div class="main-title">Explore users</div>
+    <div class="main-subhead">Your Friends</div>
+    <div ng-repeat="x in unc.friends" layout="column" layout-align="center center">
+        <md-button ng-click="goToPage(x.id)">{{x.username}}</md-button>
+    </div>
+    <div class="main-subhead">Other Users</div>
+    <div ng-repeat="x in unc.others" layout="column" layout-align="center center">
+        <md-button ng-click="goToPage(x.id)">{{x.username}}</md-button>
+    </div>
+</body>
+</html>

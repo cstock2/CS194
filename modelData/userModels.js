@@ -76,7 +76,7 @@ function getData(){
         location: "Stanford",
         password: "weak",
         email: "cody",
-        currentBots: ["10","14",'13','german','16'],
+        currentBots: ["10","14",'13','german','16','15'],
         friends: ["2","6","4"],
         friendRequests: ["5"],
         pendingFriendRequests: ["7"],
@@ -142,7 +142,7 @@ function getData(){
     bots.push({
         id: "german",
         name: "German Bot",
-        url: 'https://www.beastweavers.com/germanbot/',
+        url: 'https://www.beastweavers.com/germanbot',
         basicPerm: true,
         emailPerm: true,
         locationPerm: false,
@@ -151,32 +151,6 @@ function getData(){
         username: "germanbot",
         password: "germanbot",
         description: "A bot that teaches German"
-    });
-    bots.push({
-        id: "11",
-        name: "dummy",
-        url: 'http://localhost:5678', //PLEASE CHANGE THIS IF YOU USE THIS PORT
-        description: "a simple dummy bot, does not do anything",
-        basicPerm: true,
-        emailPerm: false,
-        locationPerm: false,
-        birthdayPerm: false,
-        allPerm: false,
-        username: "dummy",
-        password: "dummy"
-    });
-    bots.push({
-        id: "12",
-        name: "dummy2",
-        url: 'http://localhost:6789',
-        description: "another simple dummy bot",
-        basicPerm: true,
-        emailPerm: true,
-        locationPerm: false,
-        birthdayPerm: false,
-        allPerm: false,
-        username: "dummy2",
-        password: "dummy2"
     });
     bots.push({
         id: "14",
@@ -220,7 +194,7 @@ function getData(){
     bots.push({
         id: '16',
         name: 'teacherbot',
-        url: 'https://teacherbot194.herokuapp.com/teacherbot/',
+        url: 'https://teacherbot194.herokuapp.com/teacherbot',
         description: 'A teacher bot',
         basicPerm: true,
         emailPerm: true,
@@ -233,7 +207,7 @@ function getData(){
     bots.push({
         id: '17',
         name: 'convobot',
-        url: '',
+        url: 'https://danielconvobot.herokuapp.com/',
         description: 'A conversational bot',
         basicPerm: true,
         emailPerm: true,
@@ -242,6 +216,19 @@ function getData(){
         allPerm: false,
         username: 'convobot',
         password: 'convobot'
+    });
+    bots.push({
+        id: '18',
+        name: 'testBot',
+        url: 'http://localhost:5557',
+        description: 'A test bot',
+        basicPerm: true,
+        emailPerm: true,
+        locationPerm: false,
+        birthdayPerm: false,
+        allPerm: false,
+        username: 'testBot',
+        password:'testBot'
     });
 
     var messages = [];

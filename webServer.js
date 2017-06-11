@@ -15,29 +15,17 @@ var https = require('https');
 var url = require('url');
 var fs = require('fs');
 
-// var ngrok = require('ngrok');
-// ngrok.connect({
-//     proto: 'http', // http|tcp|tls
-//     addr: 3030 // port or network address
-// }, function (err, url) {});
-
 var privateKey  = fs.readFileSync('key.pem', 'utf8');
 var certificate = fs.readFileSync('cert.pem', 'utf8');
 
 var credentials = {key: privateKey, cert: certificate};
 
-// var httpsServer = https.createServer(credentials, app);
-// httpsServer.listen(8443);
 
 var socketManager = require('./socketManager.js').socketManager();
 
-// app.set('port', (process.env.PORT || 3002));
 
 var http = require('http').Server(app);
-// console.log("http: ", http);
 var io = require('socket.io')(http);
-// console.log("IO");
-// console.log(io);
 
 http.listen(3002, function(){
     console.log("STARTING HTTP SERVER");
@@ -47,11 +35,6 @@ http.listen(3002, function(){
 var clientIds = {};
 var idCounter = 0;
 
-// var wss = new WebSocket.Server({
-//     perMessageDeflate: false,
-//     port: 3030,
-//     secure: true
-// });
 var wss;
 if(process.env.PORT){
     console.log("NON-LOCAL");
@@ -67,42 +50,14 @@ if(process.env.PORT){
 }
 else{
     console.log("LOCAL");
-    // httpsServer = https.createServer({}, function(){});
-    // wss = new WebSocket.Server({
-    //     perMessageDeflate: false,
-    //     port: 3002,
-    //     secure: true
-    // });
     io.on('connection', function(socket){
         console.log("Connection received");
         clientIds[idCounter] = socket;
         idCounter += 1;
-        // console.log("SOCKET:", socket);
         socket.emit('news', {message: 'register', number: idCounter - 1});
-        // socket.on('chat message', function(msg){
-        //     io.emit('chat message', msg);
-        // });
     });
-    // wss = new WebSocketServer({server: http})
-    // httpsServer = https.createServer({port: 3030}, function(){});
-    // wss = new WebSocketServer({server: httpsServer, perMessageDeflate: false});
 }
-// var wss = new ws({
-//     server: httpsServer,
-//     port: 3030,
-//     perMessageDeflate: false,
-// });
 
-// io.on('connection', function(socket){
-//     console.log("Connection received");
-//     socket.on('disconnect', function(){
-//         console.log("User disconnected");
-//     });
-// });
-
-
-//
-// console.log(wss);
 
 app.use(session({
     secret: 'secretKey',
@@ -197,10 +152,6 @@ app.get('/admin/getSession', function(request,response){
             id: request.session.user.id
         }));
     }
-});
-
-app.get('/admin/getsocketserver', function(request, response){
-
 });
 
 //has not been unit tested
@@ -507,8 +458,8 @@ app.post('/declineFriendRequest', function(request, response){
                 }));
                 return;
             }
-            var pendingIndex = currUser.pendingFriendRequests.indexOf(request.body.userId);
-            var frIndex = reqUser.friendRequests.indexOf(currUser.id);
+            var pendingIndex = currUser.friendRequests.indexOf(request.body.userId);
+            var frIndex = reqUser.pendingFriendRequests.indexOf(currUser.id);
             if(pendingIndex === -1){
                 response.status(400).send(JSON.stringify({
                     statusCode:400,
@@ -523,8 +474,8 @@ app.post('/declineFriendRequest', function(request, response){
                 }));
                 return;
             }
-            currUser.pendingFriendRequests.splice(pendingIndex, 1);
-            reqUser.friendRequests.splice(frIndex, 1);
+            currUser.friendRequests.splice(pendingIndex, 1);
+            reqUser.pendingFriendRequests.splice(frIndex, 1);
             currUser.save();
             reqUser.save();
             response.send(JSON.stringify({
@@ -579,8 +530,8 @@ app.post('/cancelFriendRequest', function(request, response){
                 }));
                 return;
             }
-            var frIndex = currUser.friendRequests.indexOf(request.body.userId);
-            var pendingIndex = reqUser.pendingFriendRequests.indexOf(currUser.id);
+            var frIndex = currUser.pendingFriendRequests.indexOf(request.body.userId);
+            var pendingIndex = reqUser.friendRequests.indexOf(currUser.id);
             if(frIndex === -1){
                 response.status(400).send(JSON.stringify({
                     statusCode:400,
@@ -595,13 +546,13 @@ app.post('/cancelFriendRequest', function(request, response){
                 }));
                 return;
             }
-            currUser.friendRequests.splice(frIndex, 1);
-            reqUser.pendingFriendRequests.splice(pendingIndex, 1);
+            currUser.pendingFriendRequests.splice(frIndex, 1);
+            reqUser.friendRequests.splice(pendingIndex, 1);
             currUser.save();
             reqUser.save();
             var text = currUser.firstName + " " + currUser.lastName + " has sent you a friend request";
             Notifications.remove({to: reqUser.id, text: text, relId: currUser.id}, function(result){
-                if(result.writeConcernError){
+                if(result && result.writeConcernError){
                     response.status(500).send(JSON.stringify({
                         statusCode:500,
                         message:"Error deleting notification"
@@ -796,8 +747,8 @@ app.post('/acceptFriendRequest', function(request,response){
                 }));
                 return;
             }
-            var pendingIndex = currUser.pendingFriendRequests.indexOf(request.body.userId);
-            var frIndex = reqUser.friendRequests.indexOf(currUser.id);
+            var pendingIndex = currUser.friendRequests.indexOf(request.body.userId);
+            var frIndex = reqUser.pendingFriendRequests.indexOf(currUser.id);
             if(pendingIndex === -1){
                 response.status(400).send(JSON.stringify({
                     statusCode:400,
@@ -812,8 +763,8 @@ app.post('/acceptFriendRequest', function(request,response){
                 }));
                 return;
             }
-            currUser.pendingFriendRequests.splice(pendingIndex, 1);
-            reqUser.friendRequests.splice(frIndex, 1);
+            currUser.friendRequests.splice(pendingIndex, 1);
+            reqUser.pendingFriendRequests.splice(frIndex, 1);
             currUser.friends.push(reqUser._id);
             reqUser.friends.push(currUser._id);
             currUser.save();
@@ -887,9 +838,9 @@ app.post('/sendFriendRequest', function(request, response){
                 }));
                 return;
             }
-            currUser.friendRequests.push(request.body.userId);
+            currUser.pendingFriendRequests.push(request.body.userId);
             currUser.save();
-            reqUser.pendingFriendRequests.push(currUser.id);
+            reqUser.friendRequests.push(currUser.id);
             reqUser.save();
             Notifications.create({
                 to: reqUser._id,
@@ -985,7 +936,7 @@ app.post('/sendMCMessage', function(request,response){
                 var options = {
                     body:postData,
                     json: true,
-                    url: bot.url,
+                    url: bot.url + '/sendMessage',
                     timeout: 1500
                 };
                 requestObj.post(options, function(error, sResponse, body){
@@ -1292,9 +1243,10 @@ app.post('/sendMessage', function(request, response){
             var options = {
                 body:postData,
                 json: true,
-                url: bot.url,
+                url: bot.url + '/sendMessage',
                 timeout: 1500
             };
+            console.log("SENDING TO URL: ", options.url);
             requestObj.post(options, function(error, sResponse, body){
                 if(error) {
                     // if(error.code === 'ETIMEDOUT'){
@@ -1321,7 +1273,7 @@ app.post('/sendMessage', function(request, response){
                     // }
                 }
                 else if(body.message !== "--ACK--"){
-                    console.log("SRESPONSe", sResponse);
+                    // console.log("SRESPONSe", sResponse);
                     console.log("BAD BOT RESPONSE: ", body);
                     response.status(500).send(JSON.stringify({
                         statuscode:500,
@@ -2129,6 +2081,56 @@ app.get('/isType/:id', function(request,response){
     });
 });
 
+app.get('/usersAndFriends', function(request, response){
+    if(typeof request.session.user === 'undefined'){
+        response.status(401).send(JSON.stringify({
+            statusCode:401,
+            message: "Unauthorized"
+        }));
+        return;
+    }
+    Users.find(function(err, users){
+        if(err){
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
+                message:"Error finding users"
+            }));
+            return;
+        }
+        Users.findOne({_id: request.session.user._id}, function(err, user){
+            if(err){
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
+                    message:"Error finding current user"
+                }));
+                return;
+            }
+            else if(user === null){
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
+                    message:"Invalid current user"
+                }));
+                return;
+            }
+            var friends = [];
+            var otherUsers = [];
+            for(var idx in users){
+                var currUser = users[idx];
+                if(user.id === currUser.id){
+                    console.log("Do not add current User")
+                }
+                else if(user.friends.indexOf(currUser.id) !== -1){
+                    friends.push({id: currUser.id, username: currUser.firstName + " " + currUser.lastName});
+                }
+                else{
+                    otherUsers.push({id: currUser.id, username: currUser.firstName + " " + currUser.lastName});
+                }
+            }
+            response.send(JSON.stringify({friends: friends, others: otherUsers}));
+        });
+    });
+});
+
 app.get('/userList', function(request,response){
     if(typeof request.session.user === 'undefined'){
         response.status(401).send(JSON.stringify({
@@ -2645,6 +2647,8 @@ app.get('/botUsersInGroup/:convoId', function(request, response){
 });
 
 app.get('/botUsers', function(request,response){
+    console.log("Got bot users request");
+    console.log(request.session.botLogin);
     if(typeof request.session.botLogin === 'undefined'){
         response.status(401).send(JSON.stringify({
             statusCode:401,
@@ -2688,6 +2692,8 @@ app.get('/botUsers', function(request,response){
 });
 
 app.get('/userInfo/:botId/:userId/:type', function(request, response){
+    console.log("IN USER INFO");
+    console.log(request.params);
     if(typeof request.session.botLogin === 'undefined') {
         response.status(401).send(JSON.stringify({
             statusCode: 401,
@@ -2698,73 +2704,81 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
     var userId = request.params.userId;
     var botId = request.params.botId;
     var type = request.params.type;
+    console.log("userId: ", userId);
     if(type !== 'basic' && type !== 'email' && type !== 'birthday' && type !== 'location' && type !== 'all'){
-        response.status(404).send(JSON.stringify({
-            statusCode:404,
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
             message:"Invalid type request"
         }));
         return;
     }
     Bots.findOne({id: botId}, function(err, botObj){
         if(err){
-            response.status(404).send(JSON.stringify({
-                statusCode:404,
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
                 message:"Error authenticating bot"
             }));
             return;
         }
         else if(botObj === null){
-            response.status(401).send(JSON.stringify({
-                statusCode:401,
+            console.log("Invalid bot id");
+            response.status(400).send(JSON.stringify({
+                statusCode:400,
                 message:"Invalid bot id"
             }));
             return;
         }
-        Users.findOne({id: userId}, function(err, userObj){
+        Users.findOne({_id: userId}, function(err, userObj){
+            console.log("USEROBJ: ", userObj);
             if(err){
-                response.status(404).send(JSON.stringify({
-                    statusCode:404,
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
                     message:"Error finding user"
                 }));
                 return;
             }
             else if(userObj === null){
-                response.status(401).send(JSON.stringify({
-                    statusCode:401,
+                console.log('Invalid user id');
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
                     message:"Invalid user id"
                 }));
                 return;
             }
             var botAuth;
             if(type === 'basic'){
+                console.log("GETTING BASIC INFO");
+                console.log("BOT ID: ", botId);
                 botAuth = userObj.basicAuthBots.find(function findId(id){
-                    return id === botId;
+                    console.log("ID: ", id);
+                    console.log(id == botId);
+                    return id == botId;
                 });
             }
             else if(type === 'email'){
                 botAuth = userObj.emailAuthBots.find(function findId(id){
-                    return id === botId;
+                    return id == botId;
                 });
             }
             else if(type === 'birthday'){
                 botAuth = userObj.birthdayAuthBots.find(function findId(id){
-                    return id === botId;
+                    return id == botId;
                 });
             }
             else if(type === 'location'){
                 botAuth = userObj.locationAuthBots.find(function findId(id){
-                    return id === botId;
+                    return id == botId;
                 });
             }
             else if(type === 'all'){
                 botAuth = userObj.allAuthBots.find(function findId(id){
-                    return id === botId;
+                    return id == botId;
                 });
             }
             if(typeof botAuth === 'undefined'){
                 response.status(401).send(JSON.stringify({
                     statusCode:401,
-                    message:"Not authorized"
+                    message:"Not authorized for that info"
                 }));
                 return;
             }
@@ -2791,6 +2805,7 @@ app.get('/userInfo/:botId/:userId/:type', function(request, response){
                 returnObj.birthday = userObj.birthday;
                 returnObj.location = userObj.location;
             }
+            console.log(returnObj);
             response.send(JSON.stringify(returnObj));
         });
     });
@@ -2887,50 +2902,59 @@ app.post('/botSendGroupMessage', function(request,response){
 });
 
 app.post('/botSendMessage', function(request, response){
+    console.log("GETTING A BOT MESSAGE");
+    // console.log(request.session.botLogin);
+    console.log("BODY:", request.body);
     if(typeof request.session.botLogin === 'undefined'){
         response.status(401).send(JSON.stringify({
             statusCode:401,
             message:"Unauthorized"
         }));
+        console.log("NO COOKIES");
         return;
     }
     if(Object.keys(request.body).length !== 4 || typeof request.body.type !== 'string' || typeof request.body.userId !== 'string' || typeof request.body.botId !== 'string' || (request.body.type === 'text' && typeof request.body.text !== 'string') || (request.body.type === 'mc' && typeof request.body.options === 'undefined')){
-        response.status(404).send(JSON.stringify({
-            statusCode:404,
+        response.status(400).send(JSON.stringify({
+            statusCode:400,
             message:"Invalid arguments"
         }));
+        console.log("BAD ARGUMENTS");
         return;
     }
     Bots.findOne({_id:request.body.botId}, function(err,bot){
         if(err){
-            response.status(404).send(JSON.stringify({
-                statusCode:404,
+            response.status(500).send(JSON.stringify({
+                statusCode:500,
                 message:"Error finding bot"
             }));
             return;
         }
         else if(bot === null){
-            response.status(404).send(JSON.stringify({
-                statusCode:404,
+            response.status(400).send(JSON.stringify({
+                statusCode:400,
                 message:"Invalid bot"
             }));
+            console.log("COULD NOT GET BOT");
             return;
         }
+        console.log("FOUND BOT");
         Users.findOne({_id:request.body.userId}, function(err,user){
             if(err){
-                response.status(404).send(JSON.stringify({
-                    statusCode:404,
+                response.status(500).send(JSON.stringify({
+                    statusCode:500,
                     message:"Error finding user"
                 }));
                 return;
             }
             else if(user === null){
-                response.status(404).send(JSON.stringify({
-                    statusCode:404,
+                response.status(400).send(JSON.stringify({
+                    statusCode:400,
                     message:"Invalid user"
                 }));
+                console.log("INVALID USER");
                 return;
             }
+            console.log("ABOUT TO CREATE MESSAGE");
             Messages.create({
                 to: request.body.userId,
                 from: request.body.botId,
@@ -2939,8 +2963,8 @@ app.post('/botSendMessage', function(request, response){
                 options: request.body.options
             }, function(err, mess){
                 if(err){
-                    response.status(404).send(JSON.stringify({
-                        statusCode:404,
+                    response.status(500).send(JSON.stringify({
+                        statusCode:500,
                         message:"Error creating message"
                     }));
                     return;
@@ -2956,13 +2980,14 @@ app.post('/botSendMessage', function(request, response){
                 }
                 if(clients.length !== 0){
                     clients.forEach(function each(client){
-                        if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
-                            // client.send('user message received');
-                            client.emit('news', {message: 'user message received'});
-                        }
-                        else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
-                            socketManager.removeId(client, user._id); //need to apply this to group messages as well
-                        }
+                        client.emit('news', {message: 'user message received'});
+                        // if(typeof client !== 'undefined' && client.readyState === WebSocket.OPEN){
+                        //     // client.send('user message received');
+                        //     client.emit('news', {message: 'user message received'});
+                        // }
+                        // else if(typeof client !== 'undefined' && client.readyState === WebSocket.CLOSED){
+                        //     socketManager.removeId(client, user._id); //need to apply this to group messages as well
+                        // }
                     });
                 }
                 var returnObj = {};

@@ -1,47 +1,32 @@
 /**
- * Created by CodyWStocker on 4/9/17.
+ * Created by CodyWStocker on 6/11/17.
  */
-
 var express = require('express');
 var app = express();
 var bodyParser = require("body-parser"); //getting rid of this will make it so you can't parse HTTP communication
 var requestObj = require("request");
+var bot = require('./bots/botTemplate.js').bot();
+
 
 app.use(bodyParser.json());
+var username = bot.username;
+var password = bot.password;
+var port = bot.port;
+// const username = "echo";
+// const password = "echoBot";
 
-const username = "echo";
-const password = "echoBot";
 const relayServer = "http://localhost:3002/";
 // const relayServer = "http://chatio.ngrok.io/";
 var myId = "a";
 var cookieJar = requestObj.jar();
 
-var server = app.listen(5555, function () {
+var server = app.listen(port, function () {
     var port = server.address().port;
     console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
     login(function(result){
         console.log("Logged in? ", result);
-        getUsers(function(users){
-            var firstUser = users[0];
-            console.log("Done checking users");
-            getUserPermissions(firstUser, function(permissions){
-                console.log("Done checking permissions");
-            });
-        });
     });
 });
-
-var getUserPermissions = function(userId, callback){
-    requestObj.get({json:true, url:relayServer + 'whatPermissions/' + userId, jar:true}, function(err, sResponse, body){
-        if(err){
-            console.log("err: ", err);
-        }
-        else{
-            console.log("Body from getPermissions: ", body);
-            callback(body.permissionList);
-        }
-    });
-};
 
 var login = function(callback){
     var postData = {username: username, password: password};
@@ -53,7 +38,7 @@ var login = function(callback){
         jar: true
     };
     var loginError = false;
-    var cookie = requestObj.cookie('key1=value1');
+    // var cookie = requestObj.cookie('key1=value1');
     var url = relayServer + "admin/botLogin";
     requestObj({url: url, jar: cookieJar}, function(){
         requestObj.post(options, function(error, sResponse, body){
@@ -71,18 +56,6 @@ var login = function(callback){
             }
             callback(!loginError);
         });
-    });
-};
-
-var getUsers = function(callback){
-    requestObj.get({json:true, url:relayServer + 'botUsers', jar:true}, function(error, sResponse,body){
-        if(error){
-            console.log("Error");
-        }
-        else{
-            console.log("Body: ", body);
-            callback(body.users);
-        }
     });
 };
 
@@ -117,42 +90,43 @@ app.get('/', function(request,response){
 app.post('/sendMessage', function(request, response){
     console.log("GOT MESSAGE");
     response.send(JSON.stringify({message: "--ACK--"}));
-    var postData = {type: 'text', text: request.body.text, botId: request.body.botId, userId: request.body.userId};
-    var options = {
-        body:postData,
-        json: true,
-        url: relayServer + 'botSendMessage',
-        timeout: 1500,
-        jar: true
-    };
-    isLoggedIn(function(result){
-        if(!result){
-            login(function(result){
-                if(!result){
-                    console.log("fatal error");
-                }
-                else{
-                    requestObj.post(options, function(error, sResponse, body) {
-                        if (error) {
-                            console.log("Bad error");
-                        }
-                        else{
-                            console.log("POSTED A MESSAGE");
-                            console.log(body);
-                        }
+    bot.respond(request.body.text, function(respond){
+        var postData = {type: 'text', text: request.body.text, botId: request.body.botId, userId: request.body.userId};
+        var options = {
+            body:postData,
+            json: true,
+            url: relayServer + 'botSendMessage',
+            timeout: 1500,
+            jar: true
+        };
+        requestObj.post(options, function(error, sResponse,body){
+            if(error){
+                console.log("FATAL ERROR");
+                return;
+            }
+            else if(body.status === 401){
+                if(error.data.statusCode === 401){
+                    console.log("Not logged in");
+                    login(function(){
+                        requestObj.post(options, function(error, sResponse, body){
+                            if(error){
+                                console.log("FATAL ERROR");
+                                return;
+                            }
+                            else if(body.status === 401){
+                                console.log("UNABLE TO LOG IN");
+                                return;
+                            }
+                            else{
+                                console.log("SUCCESSFULLY POSTED A MESSAGE: ", body);
+                            }
+                        });
                     });
                 }
-            });
-        }
-        else{
-            requestObj.post(options, function(error, sResponse, body) {
-                if (error) {
-                    console.log("Bad error");
-                }
-                else{
-                    console.log(body);
-                }
-            });
-        }
+            }
+            else{
+                console.log("SUCCESSFULLY POSTED A MESSAGE: ", body);
+            }
+        })
     });
 });

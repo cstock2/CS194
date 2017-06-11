@@ -52,6 +52,18 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
         $scope.makePage();
     };
 
+    var objDiv;
+    $scope.handleEvent = function(event){
+        if(event.keyCode === 13){
+            if($scope.isNotBot){
+                $scope.cc.sendUserMessage($scope.cc.currUser.id);
+            }
+            else{
+                $scope.cc.sendMessage();
+            }
+        }
+    };
+
     $scope.cc.sendUserMessage = function(userId){
         if($scope.cc.myMessage !== ""){
             var message2 = {};
@@ -59,6 +71,7 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
             message2.userTo = userId;
             var resource = $resource('/sendUserUserMessage');
             var data = resource.save(JSON.stringify(message2), function(err, returnObj){
+                $scope.cc.myMessage = "";
                 if(returnObj !== null){
                     $scope.cc.myMessage = "";
                     $scope.makePage();
@@ -84,6 +97,7 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                     }
                 });
             var data = resource.save(JSON.stringify(message), function(err, returnObj){
+                $scope.cc.myMessage = "";
                 if(returnObj !== null){
                     $scope.cc.myMessage = "";
                     $scope.makePage();
@@ -135,6 +149,8 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                         var dateString = $scope.main.formatDate(currChat.dateTime);
                         $scope.cc.chatHistory[idx].dateTime = dateString;
                     }
+                    objDiv = document.getElementById("chat-body");
+                    objDiv.scrollTop = objDiv.scrollHeight;
                 });
             }
             else if(btr.type === 'bot'){
@@ -163,6 +179,8 @@ chatApp.controller('ChatController', ['$scope', '$resource','$routeParams','$roo
                     if(numChats > 0){
                         $scope.cc.chatHistory[numChats-1].current = true;
                     }
+                    objDiv = document.getElementById("chat-body");
+                    objDiv.scrollTop = objDiv.scrollHeight;
                 });
             }
         });
